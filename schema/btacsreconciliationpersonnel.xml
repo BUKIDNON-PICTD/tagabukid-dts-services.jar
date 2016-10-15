@@ -1,0 +1,7 @@
+<schema>
+	<element name="btacsreconciliationpersonnel" tablename="btacs_reconciliation_personnel">
+		<field name="objid" primary="true"/>
+		<field name="parentid" required="true"/>
+		<field name="personnelid" required="true"/>
+	</element>
+</schema>

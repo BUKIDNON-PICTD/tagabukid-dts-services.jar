@@ -1,0 +1,227 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+import java.text.DecimalFormat;
+
+
+class TagabukidDINInventoryService extends ActiveCrudListService
+{
+
+	@ActiveDB(value='dininventory', em='tagabukid_etracs')
+	def em
+
+	@ActiveDB(value='dininventory', em='system')
+	def emmain
+
+	@ActiveDB(value='userorg', em='tagabukid_etracs')
+	def emuserorg
+
+	@ActiveDB(value='sequence', em='system')
+	def emsq;
+
+	@ActiveDB(value='userorg', em='postgrereferences')
+	def empostref
+	
+	@Env
+	def env;
+
+	@Service("SequenceService")
+	def seqSvc;
+
+	@Service("TagabukidDTSService")
+	def dtsSvc;
+
+	@Service('DateService')
+	def dtSvc 
+
+	void beforeList(params){
+		if (params == null) params = [:]
+		params.searchtext = (params.searchtext ? params.searchtext :'')+'%'
+	}
+
+	// public void afterOpen(o){
+	// 	def params = [:]
+	// 	params.searchtext = '%'
+	// 	params.filter = "AND objid = '" + o.objid + "'";
+	// 	def entity = emmain.getEtracsUser(params)
+	// 	def org = empostref.getOrgById([orgid:"'"+o.organizationid+"'"])
+	// 	o.orgname = org.Entity[0].Name
+	// 	o.orgcode = org.Entity[0].AcronymAbbreviation
+	// 	o.name = entity[0].name
+
+	// }
+
+	@ProxyMethod
+	public def getColumns( params ) {
+		return [
+			[name:"startseries", caption:"Start Series", width:40],
+            [name:"endseries", caption:"End Series", width:40],
+            [name:"startserialno", caption:"Start DIN", width:100],
+            [name:"endserialno", caption:"End DIN", width:100],
+            [name:"qty", caption:"Quantity", width:40],
+            [name:"orgname", caption:"Office/Organization", width:50],
+            [name:"orgcode", caption:"Code", width:50],
+            [name:"expdate", caption:"Expiry Date", width:100],
+		]	
+	}
+
+	
+	@ProxyMethod
+	public def getList( params ) {
+		beforeList(params)
+		def inventory = em.getList(params)
+		inventory.each{
+			def org = empostref.getOrgById([orgid:"'"+it.orgid+"'"])
+			it.orgname = org.Entity[0].Name
+			it.orgcode = org.Entity[0].AcronymAbbreviation
+		}
+		return inventory
+		
+	} 
+
+	
+
+
+	@ProxyMethod
+	public def getNextSequence(dincount) {
+		def o = getCurrentSeries()
+		def newsequence = [
+			startseries  :  o.currentsequence,
+			endseries    : o.currentsequence + (dincount - 1),
+			startserialno: null,
+			endserialno  : null,
+			prefix       : o.prefix
+		]
+		newsequence.startserialno = o.prefix + "$newsequence.startseries".padLeft(5, '0')
+		newsequence.endserialno = o.prefix + "$newsequence.endseries".padLeft(5, '0')
+
+		return newsequence;
+	}
+
+	@ProxyMethod
+	public def getCurrentSeries() {
+		def appcode = "DTS"
+		def yr = dtSvc.serverYear;
+		def mnth = dtSvc.serverMonth;
+		def smon = ( mnth < 10 ) ? "0"+mnth : mnth+"";
+		def prefix = appcode+yr+smon;
+		def seq = emsq.findCurrentSeries([ objid: prefix ]);
+		if ( ! seq ) {
+			seq = seqSvc.create( prefix );
+			// seq = [
+			// 	objid      : prefix,
+			// 	nextSeries : 1,
+			// ];
+			// emsq.create("sequence:sequence",seq);
+			def dinsequence = [
+				prefix         : prefix,
+				currentsequence: seq.nextSeries
+			]
+			return dinsequence;
+		}
+		
+		def dinsequence = [
+			prefix : prefix,
+			currentsequence : seq.currentSeries
+		]
+
+		return dinsequence;
+	}
+
+	@ProxyMethod(local=true)
+	public def createseq( objid ) {
+		def seq = null
+		try{
+			seq = emsq.read("sequence:sequence", [objid:objid])
+		}
+		catch(e){
+
+		}
+		def nextSeries = 1;
+		if( ! seq ) {
+			seq = [
+				objid      : objid,
+				nextSeries : nextSeries,
+			];
+			emsq.create("sequence:sequence",seq);
+		}
+		return seq;
+	}
+
+	@ProxyMethod
+	public def getDINs(objid) {
+		def inv = findById(objid)
+		def dins = []
+		for(int x=0;x<inv.qty;x++){
+			def sequence = inv.startseries + x
+			def din = [
+				din    : inv.prefix + "$sequence".padLeft(5, '0'),
+				barcode: "71007:" + inv.prefix + "$sequence".padLeft(5, '0'),
+				orgname: dtsSvc.getUserOrg(inv.recordlog.createdbyuserid).orgname
+			]
+			dins.push(din)
+		}
+
+		return dins
+
+	}
+
+	public def createdin(def o) {
+		def appcode = "DTS"
+		def yr      = dtSvc.serverYear;
+		def mnth    = dtSvc.serverMonth;
+		def smon    = ( mnth < 10 ) ? "0"+mnth : mnth+"";
+		def prefix  = appcode+yr+smon;
+		return prefix+seqSvc.getNextFormattedSeries(prefix);
+	}
+
+	@ProxyMethod
+	public def findById( objid ) {
+		return em.findById([objid:objid])
+	}
+
+
+	@Async
+	@ProxyMethod
+	public def exportData(params) {
+		return [
+			filetype: 'ordinanceentity',
+			ordinancecategories: getLists([:])
+		] 
+	}
+
+	@Async
+	@ProxyMethod
+	public def importData( data ) {
+		if (data.filetype != 'ordinanceentity')
+			throw new Exception('Invalid data.')
+		data.ordinanceentity.each{
+			save(it)
+		}
+	}
+
+	void beforeCreate(o){
+		o.recordlog_datecreated         = dtSvc.serverDate
+		o.recordlog_createdbyuserid     = env.USERID
+		o.recordlog_createdbyuser       = env.FULLNAME
+		o.recordlog_dateoflastupdate    =  dtSvc.serverDate
+		o.recordlog_lastupdatedbyuserid = env.USERID
+		o.recordlog_lastupdatedbyuser   = env.FULLNAME
+		
+		def dinsequence                 = getNextSequence(o.qty)
+		o.startseries                   = dinsequence.startseries
+		o.endseries                     =   dinsequence.endseries
+		o.startserialno                 = dinsequence.startserialno
+		o.endserialno                   =   dinsequence.endserialno
+		
+		o.prefix                        = dinsequence.prefix
+		o.orgid                         = dtsSvc.getUserOrg(env.USERID).organizationid
+		o.expdate                       = dtSvc.serverDate + 1
+	
+	}
+
+
+	void afterCreate(o){
+		emmain.incrementNextSeries([ objid: getCurrentSeries().prefix,dincount:o.qty ]); 
+	}
+}

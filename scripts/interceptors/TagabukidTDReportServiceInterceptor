@@ -1,0 +1,24 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+
+class TagabukidTDReportServiceInterceptor {
+
+	@PersistenceContext('main')
+    def em
+	
+	@After(pattern="TDReportService.buildTaxDec")
+	public def changePlantTreeRpuAssessment(def evt) { 
+		def td = evt.result 
+		buildPlantTreeRpuAssessment(td)
+
+	}
+
+	void buildPlantTreeRpuAssessment(td){
+        //if (td.rputype != 'planttree') return 
+        td.plants = em.sqlContext.createNamedQuery('tagabukidrptreport:getPlantTreeAssessmentTagabukid')
+                            .setParameter('faasid', td.faasid).resultList.each{
+                            it.planttreename = it.planttreename + ' - ' + it.subname
+                        }
+    }
+}

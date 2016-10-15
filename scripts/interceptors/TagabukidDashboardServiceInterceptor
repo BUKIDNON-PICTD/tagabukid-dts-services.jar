@@ -1,0 +1,35 @@
+import com.rameses.annotations.*
+import com.rameses.eserver.*;
+import com.rameses.common.*;
+
+class TagabukidDashboardServiceInterceptor {
+
+    @Service("TagabukidDashboardService")
+    def svc
+	
+	@After(pattern="CashReceiptService.post", index=-11)
+	public void udpateDash1(evt) { 
+	   def p = evt.args[0];
+	   svc.dash();
+	}
+
+	@After(pattern="RemittanceService.post", index=-11)
+	public void udpateDash2(evt) { 
+	   def p = evt.args[0];
+	   svc.dash();
+	}
+
+	@After(pattern="LiquidationService.post", index=-11)
+	public void udpateDash3(evt) { 
+	   def p = evt.args[0];
+	   svc.dash();
+	}
+
+	@After(pattern="TagabukidDTSService.processDocument", index=-11)
+	public void udpateDash4(evt) { 
+	   def p = evt.args[0];
+	   svc.dash();
+	}
+
+	
+}

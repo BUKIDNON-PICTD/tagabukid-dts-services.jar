@@ -1,0 +1,35 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+import com.rameses.common.*
+import com.rameses.services.extended.*
+
+class PCInvolvedOfficesLookupService  {
+
+	@ActiveDB(value='paperlesscertification', em='paperlesscertification')
+	def em;
+
+	@Env
+	def env;
+
+	@ProxyMethod
+	public def getColumns( def o ) {
+		return[
+			[name:'name', caption:'Office Name', width:200, resizable:false ],
+		];
+	}
+	
+	@ProxyMethod
+	public def getList( Map m ) {
+		if(m.searchtext == null ) m.searchtext = "";
+		m.name = m.searchtext.trim() + "%";
+		
+		m._pagingKeys = "r.objid";
+		m._limit = 50;
+
+		m.filter = ''
+		
+		
+		return em.getLookupInvOff(m);	
+	} 
+}

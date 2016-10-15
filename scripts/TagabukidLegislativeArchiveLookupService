@@ -1,0 +1,40 @@
+import com.rameses.annotations.*
+import com.rameses.common.*
+import com.rameses.eserver.*;
+import java.rmi.server.UID;
+
+public class TagabukidLegislativeArchiveLookupService
+{
+
+	@Service('TagabukidLookupUtilService')
+	def util 
+
+	@Service('TagabukidOrdinanceEntityLookUpService')
+	def ordentitysvc 
+
+	@ProxyMethod
+	public def lookupOrdinanceCategory( params ) {
+		return util.lookup( 'ordinancecategory:getList', params,'objid' )
+	}
+
+	@ProxyMethod
+	public def lookupOrdinanceClassification( params ) {
+		return util.lookup( 'ordinanceclassification:getList', params,'objid' )
+	}
+
+	@ProxyMethod
+	public def lookupOrdinanceCommittee( params ) {
+		return util.lookup( 'ordinancecommittee:getList', params,'objid' )
+	}
+
+	@ProxyMethod
+	public def lookupOrdinanceEntity( params ) {
+		return ordentitysvc.getList(params)
+	}
+
+	@ProxyMethod
+	public def lookupOrdinanceSubjectMatter( params ) {
+		return util.lookup( 'ordinancesubjectmatter:getList', params,'objid' )
+	}
+
+}

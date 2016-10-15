@@ -1,0 +1,96 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+import com.rameses.common.*
+import com.rameses.services.extended.*
+
+class TagabukidStockRequestConsoliadtionService extends ActiveCrudListService {
+
+	@ActiveDB(value='purchasestockrequest', em='tagabukid_peedmo')
+	def em;
+
+	@Service("SequenceService") 
+	def seqSvc;
+
+	@Service("DateService") 
+	def dateSvc;
+
+	@Env
+	def env;
+
+	@ProxyMethod
+	public def getNodes( def o ) {
+		return [
+			[state:'OPEN', caption:'Open' ],
+			[state:'CLOSED', caption:'Closed' ]
+		];
+	}
+
+	@ProxyMethod
+	public def getColumns( def o ) {
+		return[
+			[name:'reqno', caption:'Req No' ],
+			[name:'dtfiled', caption:'Date Filed' ],
+			[name:'requester.name', caption:'Requester'],
+			[name:'state', caption:'State' ],
+		];
+	}
+	
+	public void beforeList(o) {
+		o.filter = '''AND r.reqtype IN ('CONSOLIDATION') '''
+	} 
+	
+	void beforeCreate( def o ) {
+		o.requester = [objid:env.USERID, name:env.FULLNAME, title:env.JOBTITLE];
+		o.reqno = "CONS" + seqSvc.getNextFormattedSeries("PSR");
+		o.dtfiled = dateSvc.serverDate;
+		o.state = "OPEN";
+		o.reqtype = 'CONSOLIDATION'
+		consolidateitem(o);
+	}
+	
+	void afterCreate( o ) {
+		o.consolidateditems.each {
+			it.objid = "STKCONS"+new UID();
+			it.parentid = o.objid;
+
+			em.create( it, "item" );
+		}
+
+		o.items.each{
+			em.closeConsolidatedRequest([objid:it.objid,parentid:o.objid])
+		}
+	}
+
+	// //use this to open the file
+	// void afterList(o,list) {
+	// 	list.each {
+	// 		it._filetype = "stockrequest:"+it.reqtype.toLowerCase();
+	// 	}
+	// }
+
+	//use to display handler per each item
+	void afterOpen( o ) {
+		o.items = em.getConsolidatedRequestItems([parentid:o.objid]);
+		o.createdbyid= o.requester.objid
+	    o.createdbyname= o.requester.name
+		o.items.each {
+			it.createdbyname = it.requester.name
+			it.createdbydate = it.dtfiled
+		}
+	}
+
+	void consolidateitem(o){
+		def filter = "AND parentid IN ('" + o.items.objid.join("','")+ "')"
+		def consolidateditems = em.getConsolidatedItems([filter:filter])
+		o.consolidateditems = consolidateditems
+	
+	}
+
+	@ProxyMethod 
+	void deleteRequest(o) {
+		em.deleteRequest(o)
+	}
+
+
+}

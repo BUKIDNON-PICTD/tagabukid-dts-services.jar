@@ -1,0 +1,70 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+
+public class BUKPermitteeCRUDService extends ActiveCrudListService
+{
+	@ActiveDB(value='permittee', em='plugtreasury')
+	def em;
+
+	@ProxyMethod
+	public def getColumns(params){
+		return [
+			[name:'permitteename', caption:'Permittee'],
+			[name:'location', caption:'Location'],
+			[name:'commodityname', caption:'Commodity'],
+			[name:'startdate', caption:'Start Date'],
+			[name:'enddate', caption:'End Date'],
+			[name:'status', caption:'Remarks'],
+
+		]
+	}
+
+	public void afterOpen(permittee){
+		permittee.commoditys = em.getCommoditys(permittee)
+	}
+
+	void afterCreate(permittee){
+		saveCommoditys(permittee);
+	}
+
+	void afterUpdate(permittee){
+		saveCommoditys(permittee);
+	}
+
+	void saveCommoditys(permittee){
+		permittee.commoditys.each{			/*loop ni, equivalent sa for loop */
+			em.save(it, 'commodity');
+		}
+	}
+
+	void beforeRemoveCommodity(permittee){
+		em.deleteAllCommodity(permittee);
+	}
+
+	@ProxyMethod
+	public void deleteCommodity(permittee){
+		em.delete(commodity, 'commodity')
+	}
+
+
+	@ProxyMethod
+	public def getReportData(personnel){
+		personnel = open(personnel)
+
+		//perform complex operations or processing
+
+		personnel.name = personnel.lastname + ', '
+		personnel.name += personnel.firstname
+
+		if (personnel.middlename)
+			personnel.name += ' ' + personnel.middlename
+
+		//done
+
+		return personnel
+	}
+
+	
+
+}

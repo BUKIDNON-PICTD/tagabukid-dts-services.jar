@@ -1,0 +1,9 @@
+<schema>
+	<element name="btacsapprover" tablename="btacs_approver">
+		<field name="objid" primary="true"/>
+		<field name="profileid" required="true"/>
+		<field name="lastname" />
+		<field name="firstname" />
+		<field name="middlename" />
+	</element>
+</schema>

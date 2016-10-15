@@ -1,0 +1,29 @@
+<schema>
+	
+	<element tablename="document_task">
+		<field name="objid" primary="true"/>
+		<field name="refid" required="true"/>
+		<field name="parentprocessid" />
+		<field name="lft" />
+		<field name="rgt" />
+		<field name="state"/>
+		<field name="startdate" />
+		<field name="assignee_objid"/>
+		<field name="assignee_name"/>
+		<field name="assignee_title"/>
+		<field name="enddate"/>
+		<field name="actor_objid"/>
+		<field name="actor_name"/>
+		<field name="actor_title"/>
+		<field name="message"/>
+		<field name="signature"/>
+	</element>	
+	<element name="document_task_org" tablename="document_task_org">
+		<field name="taskid" primary="true"/>
+		<field name="orgid" required="true"/>
+		<field name="macaddress" required="true"/>
+		<field name="name" />
+		<field name="code" />
+		<field name="address" />
+	</element>	
+</schema>

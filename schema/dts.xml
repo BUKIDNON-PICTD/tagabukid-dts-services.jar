@@ -1,0 +1,26 @@
+<schema>
+	<element name="document" tablename="document">
+		<field name="objid" primary="true"/>
+		<field name="docstate" required="true"/>
+		<field name="din" required="true"/>
+		<field name="dininventoryid" required="true"/>
+		<field name="parentid" />
+		<field name="documenttypeid" required="true"/>
+		<field name="title" required="true"/>
+		<field name="description" />
+		<field name="tags" />
+		<field name="author" />
+		<field name="recordlog_datecreated" required="true"/>
+		<field name="recordlog_createdbyuserid" required="true"/>
+		<field name="recordlog_createdbyuser" required="true"/>
+		<field name="recordlog_dateoflastupdate" required="true"/>
+		<field name="recordlog_lastupdatedbyuserid" required="true"/>
+		<field name="recordlog_lastupdatedbyuser" required="true"/>
+	</element>
+
+	<element name="documentlink" tablename="document_link">
+		<field name="objid" primary="true"/>
+		<field name="documentchildid" primary="true"/>
+		<field name="taskid" required="true"/>
+	</element>
+</schema>

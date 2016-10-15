@@ -1,0 +1,34 @@
+<schema>
+	<element name="certification" tablename="certification">
+		<field name="objid" primary="true"/>
+		<field name="title"/>
+		<field name="bldglocation"/>
+		<field name="outdate"/>
+		<field name="remarks"/>
+		<field name="statuses"/>
+		<field name="applications"/>
+		<field name="txndate"/>
+		<field name="certseq"/>
+		<field name="preparedbyid"/>
+		<field name="preparedbyname"/>
+		<field name="state"/>
+		<field name="recordlog_dateoflastupdate" />
+		<field name="recordlog_lastupdatedbyuserid"/>
+		<field name="recordlog_lastupdatedbyuser"/>
+	</element>
+	<element name="certificationoffice" tablename="offices">
+		<field name="objid" primary="true"/>
+		<field name="certid" required="true"/>
+		<field name="orgid" />
+		<field name="officename" />
+	</element>
+	<element name="certificationbldglocation" tablename="bldglocation">
+		<field name="objid" primary="true"/>
+		<field name="name" />
+	</element>
+	<element name="certificationinvolvedoffices" tablename="involvedoffices">
+		<field name="objid" primary="true"/>
+		<field name="name" />
+	</element>
+	
+</schema>

@@ -1,0 +1,22 @@
+<schema>
+	<element name="documenttype" tablename="document_type">
+		<field name="objid" primary="true"/>
+		<field name="state" required="true"/>
+		<field name="code" required="true"/>
+		<field name="name"/>
+		<field name="description"/>
+		<field name="haschild"/>
+		<field name="recordlog_datecreated" required="true"/>
+		<field name="recordlog_createdbyuserid" required="true"/>
+		<field name="recordlog_createdbyuser" required="true"/>
+		<field name="recordlog_dateoflastupdate" required="true"/>
+		<field name="recordlog_lastupdatedbyuserid" required="true"/>
+		<field name="recordlog_lastupdatedbyuser" required="true"/>
+	</element>
+
+	<element name="documenttypeorg" tablename="document_type_org">
+		<field name="objid" primary="true"/>
+		<field name="organizationid" primary="true"/>
+	</element>
+</schema>
+

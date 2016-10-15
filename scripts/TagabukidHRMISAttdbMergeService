@@ -1,0 +1,94 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*
+import com.rameses.services.extended.*;
+import com.rameses.util.*;
+
+class TagabukidHRMISAttdbMergeService
+{
+	@ActiveDB(value='hrmisattdbmerge', em='postgrehrmis')
+	def empost
+
+	@ActiveDB(value='hrmisattdbmerge', em='btacs')
+	def emsql
+
+
+
+	@ProxyMethod
+	public def getProfileFromAttdb () {
+		// def prof = emsql.getUsers()
+		def prof = empost.getProfileFromHRMIS()
+		// prof.each{ 
+			
+		// }
+		return prof;
+
+	}
+
+	@ProxyMethod
+	public def verifyHRMISID () {
+		def prof = emsql.getUsers()
+		prof.each{ 
+			// def x = empost.getProfileFromHRMIS([attdbid:"'"+it.STREET+"'"])
+			// println x.PersonId
+			def valid = false;
+			if(it.STREET != null && it.LEN == 36)
+				valid = empost.getProfileFromHRMIS([attdbid:"'"+it.STREET+"'"]) 	
+		
+			if(valid){
+				emsql.changeINHRIS([userid:it.USERID])	
+				println it.NAME + " IS IN HRIS"
+			}else{
+				emsql.changeNOTINHRIS([userid:it.USERID])
+				println it.NAME + " NOT IN HRIS"
+			}
+		}
+		return "DONE"
+	}
+
+	@ProxyMethod
+	public def mergePersonIdFromHRMIS () {
+		def prof = emsql.getUsersWithNoHRMISId()
+		prof.each{
+			def person = empost.getPersonId([name:"'" + it.NAME + "'"])
+
+			if(person.size() == 1){
+				emsql.changePersonId([personid:person.PersonId[0].toString(),userid:it.USERID])
+				println it.NAME + "====" + person.Name.FirstName + " " + person.Name.LastName
+			}
+		}
+		return "DONE"
+
+	}
+
+	@ProxyMethod
+	public def mergePersonIdFromHRMIS2 () {
+		def prof = emsql.getUsersWithNoHRMISId()
+		prof.each{
+			def person = empost.getPersonId([name:"'" + it.NAME + "'"])
+			if(person.size() == 2){
+				println it.NAME
+			}
+		}
+		return "DONE"
+
+	}
+
+	@ProxyMethod
+	public def syncFROMHRIS () {
+		def prof = emsql.getUsers()
+		prof.each{ 
+			// def x = empost.getProfileFromHRMIS([attdbid:"'"+it.STREET+"'"])
+			// println x.PersonId
+			if(it.STREET != null && it.LEN == 36){
+				def person = empost.getProfileFromHRMIS([attdbid:"'"+it.STREET+"'"])
+				def gender = person.Gender[0] == 0 ? "MALE" : "FEMALE"
+				emsql.changesync([gender:gender,birthdate:person.Birthday[0],userid:it.USERID])
+			}
+
+		} 	
+		return "DONE"
+
+	}
+	
+
+}

@@ -1,0 +1,69 @@
+import com.rameses.annotations.*;
+import com.rameses.services.extended.*;
+import java.rmi.server.*;
+
+
+class PaperlessCertificationListService extends ActiveCrudListService  {
+
+	@ActiveDB(value='paperlesscertification', em='paperlesscertification')
+	def em;
+
+	@Service("DateService")
+	def dateSvc;
+
+	@Service("PaperlessCertificationService")
+	def pcsvc;
+
+	@Env
+	def env;
+
+	@ProxyMethod
+	public def getNodes(o) {
+		def nodes = [];
+		nodes << [name:'pending',  caption: 'Pending', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'approved',  caption: 'Approved', leaf:true, allowSearch:true, folder:true];
+		return nodes;
+	}	
+
+	@ProxyMethod
+	public def getColumns(o) {
+		def cols = [];
+		cols <<	[name:'title', caption:'Title', width:120, resizable:false];
+		cols <<	[name:'bldglocation', caption:'Location', width:120, resizable:false];
+		cols <<	[name:'outdate', caption:'Date of Interruption', width:130];
+		cols <<	[name:'statuses', caption:'Turned On', width:130];
+		cols << [name:'applications', caption:'Applicability', width:130, resizable:false];
+		cols <<	[name:'txndate', caption:'Date Created', width:130, resizable:false];
+
+		return cols;
+	}
+
+	public void beforeList(o) {
+		o._pagingKeys = "objid";
+		o.filter = '';
+		//int activeyear = dateSvc.getServerYear();
+		//def userorgid  = dtssvc.getUserOrg(env.USERID).organizationid
+		//o.userorgid = userorgid
+		switch(o.name) {
+			case 'search':
+				if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "%";
+				o.filter = ''' AND (state IN ('APPROVED','PENDING')) ''';
+				break;
+				
+			//--------------- processing--------------------	
+			case 'pending':
+				o.state = 'PENDING';
+				o.filter = ''' AND state = $P{state} ''';
+				break;
+
+			case 'approved':
+				o.state = 'APPROVED';
+				o.filter = ''' AND state = $P{state} ''';
+				break;
+
+			default:
+				break;
+		}
+	}
+
+} 

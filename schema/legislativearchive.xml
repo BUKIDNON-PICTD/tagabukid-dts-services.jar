@@ -1,0 +1,48 @@
+<schema>
+	<element name="legislativearchive" tablename="legislativearchive">
+		<field name="objid" primary="true"/>
+		<field name="state" required="true"/>
+		<field name="ordresno" required="true"/>
+		<field name="rsno" required="true"/>
+		<field name="spno" required="true"/>
+		<field name="title" required="true"/>
+		<field name="approveddate" required="true"/>
+		<field name="publicationdate" required="true"/>
+		<field name="remarks"/>
+		<field name="recordlog_datecreated" required="true"/>
+		<field name="recordlog_createdbyuserid" required="true"/>
+		<field name="recordlog_createdbyuser" required="true"/>
+		<field name="recordlog_dateoflastupdate" required="true"/>
+		<field name="recordlog_lastupdatedbyuserid" required="true"/>
+		<field name="recordlog_lastupdatedbyuser" required="true"/>
+	</element>
+
+	<element name="legislativearchivecategory" tablename="legislativearchive_category">
+		<field name="objid" primary="true"/>
+		<field name="ordinancecategoryid" primary="true"/>
+	</element>
+	<element name="legislativearchiveclassification" tablename="legislativearchive_classification">
+		<field name="objid" primary="true"/>
+		<field name="ordinanceclassificationid" primary="true"/>
+	</element>
+	<element name="legislativearchivesubjectmatter" tablename="legislativearchive_subjectmatter">
+		<field name="objid" primary="true"/>
+		<field name="ordinancesubjectmatterid" primary="true"/>
+	</element>
+	<element name="legislativearchivecommittee" tablename="legislativearchive_committee">
+		<field name="objid" primary="true"/>
+		<field name="ordinancecommitteeid" primary="true"/>
+	</element>
+	<element name="legislativearchiveauthors" tablename="legislativearchive_authors">
+		<field name="objid" primary="true"/>
+		<field name="ordinanceentityid" primary="true"/>
+	</element>
+	<element name="legislativearchivecoauthors" tablename="legislativearchive_coauthors">
+		<field name="objid" primary="true"/>
+		<field name="ordinanceentityid" primary="true"/>
+	</element>
+
+</schema>
+
+
+	

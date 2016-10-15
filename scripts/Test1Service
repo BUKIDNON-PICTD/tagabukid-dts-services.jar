@@ -1,0 +1,26 @@
+
+import com.rameses.annotations.*;
+
+class Test1Service{
+	
+	@XConnection("test_poll")
+	def test_poll;   
+
+	@Service 
+	def self; 
+
+	void notify( data ) { 
+		self.notifyHttp( data ); 
+	} 
+
+	@Async 
+	@ProxyMethod(local=true) 
+	public void notifyHttp( data ) { 
+		if ( data ) { 
+			println "SENDING DATA:" + data
+			test_poll.send( data );  
+		} 
+	} 
+	
+}
+

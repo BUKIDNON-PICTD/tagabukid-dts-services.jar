@@ -1,0 +1,262 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+
+class TagabukidLegislativeArchiveService extends ActiveCrudListService
+{
+
+	@ActiveDB(value='legislativearchive', em='tagabukid_etracs')
+	def em
+
+	@ActiveDB('legislativearchive')
+	def emx
+
+	@Env
+	def env;
+
+	@Service('DateService')
+	def dtSvc 
+
+	@Service('TagabukidOrdinanceEntityLookUpService')
+	def oreSvc
+
+	@Service('TagabukidDBImageService')
+	def imgSvc
+	
+	@Service('LogService')
+	def logSvc 
+
+
+	void beforeList(params){
+		if (params == null) params = [:]
+		params.searchtext = '%'+(params.searchtext ? params.searchtext :'')+'%'
+		params.filter = ''
+	}
+
+	public void afterOpen(o){
+		// o.legislativearchivecategory = em.getlegislativearchivecategory(o)
+		o.legislativearchiveclassification = em.getlegislativearchiveclassification(o)
+		// o.legislativearchivesubjectmatter = em.getlegislativearchivesubjectmatter(o)
+		o.legislativearchivecommittee = em.getlegislativearchivecommittee(o)
+		o.legislativearchiveauthor = oreSvc.mergeEntityList(em.getlegislativearchiveauthor(o),null)
+		o.legislativearchivecoauthor = oreSvc.mergeEntityList(em.getlegislativearchivecoauthor(o),null)
+	}
+
+	@ProxyMethod
+	public def getColumns( params ) {
+		return [
+			[name:"ordresno", caption:"Ordinance/Resolution No.", width:50],
+			[name:"state", caption:"State", width:50],
+            [name:"rsno", caption:"RS No.", width:30],
+            [name:"spno", caption:"SP No.", width:30],
+            [name:"title", caption:"Title", width:800],
+            [name:"approveddate", caption:"Date Approved", width:50],
+            [name:"publicationdate", caption:"Date of Publication", width:50],
+		]	
+	}
+
+
+	@ProxyMethod
+	public def getLists( params ) {
+		beforeList(params)
+		return em.getLists(params)
+	} 
+
+
+	@ProxyMethod
+	public def findById( objid ) {
+		return em.findById([objid:objid])
+	}
+
+
+	@Async
+	@ProxyMethod
+	public def exportData(params) {
+		return [
+			filetype: 'legislativearchive',
+			ordinancecategories: getLists([:])
+		] 
+	}
+
+	@Async
+	@ProxyMethod
+	public def importData( data ) {
+		if (data.filetype != 'legislativearchive')
+			throw new Exception('Invalid data.')
+			data.legislativearchive.each{
+				save(it)
+			}
+	}
+	void saveitems(entity){
+		// def oldCategory = em.getlegislativearchivecategory([objid:entity.objid])
+		def oldClassification = em.getlegislativearchiveclassification([objid:entity.objid])
+		// def oldSubjectMatter = em.getlegislativearchivesubjectmatter([objid:entity.objid])
+		def oldCommittee = em.getlegislativearchivecommittee([objid:entity.objid])
+		def oldAuthor = oreSvc.mergeEntityList(em.getlegislativearchiveauthor([objid:entity.objid]),null)
+		def oldCoAuthor = oreSvc.mergeEntityList(em.getlegislativearchivecoauthor([objid:entity.objid]),null)
+
+		// if (!entity.legislativearchivecategory)
+		// 	entity.legislativearchivecategory = []
+		if (!entity.legislativearchiveclassification)
+			entity.legislativearchiveclassification = []
+		// if (!entity.legislativearchivesubjectmatter)
+		// 	entity.legislativearchivesubjectmatter = []
+		if (!entity.legislativearchivecommittee)
+			entity.legislativearchivecommittee = []
+		if (!entity.legislativearchiveauthor)
+			entity.legislativearchiveauthor = []
+		if (!entity.legislativearchivecoauthor)
+			entity.legislativearchivecoauthor = []
+
+		// def deletedCategory 	= oldCategory - entity.legislativearchivecategory 
+		// def newCategory 		= entity.legislativearchivecategory - oldCategory
+
+		def deletedClassification 	= oldClassification - entity.legislativearchiveclassification 
+		def newClassification 		= entity.legislativearchiveclassification - oldClassification
+
+
+		// def deletedSubjectMatter 	= oldSubjectMatter - entity.legislativearchivesubjectmatter 
+		// def newSubjectMatter 		= entity.legislativearchivesubjectmatter - oldSubjectMatter
+
+		def deletedCommittee 	= oldCommittee - entity.legislativearchivecommittee 
+		def newCommittee 		= entity.legislativearchivecommittee - oldCommittee
+
+		def deletedAuthor 	= oldAuthor - entity.legislativearchiveauthor 
+		def newAuthor 		= entity.legislativearchiveauthor - oldAuthor
+
+		def deletedCoAuthor 	= oldCoAuthor - entity.legislativearchivecoauthor 
+		def newCoAuthor 		= entity.legislativearchivecoauthor - oldCoAuthor
+		
+		// deletedCategory.each{
+		// 	em.deleteCategory([objid:entity.objid, ordinancecategoryid:it.objid])
+		// }
+
+		// newCategory.each{
+		// 	it.ordinancecategoryid = it.objid
+		// 	it.objid = entity.objid
+		// 	em.create(it, 'legislativearchivecategory')
+		// }
+
+		deletedClassification.each{
+			em.deleteClassification([objid:entity.objid, ordinanceclassificationid:it.objid])
+		}
+
+		newClassification.each{
+			it.ordinanceclassificationid = it.objid
+			it.objid = entity.objid
+			em.create(it, 'legislativearchiveclassification')
+		}
+
+		// deletedSubjectMatter.each{
+		// 	em.deleteSubjectMatter([objid:entity.objid, ordinancesubjectmatterid:it.objid])
+		// }
+
+		// newSubjectMatter.each{
+		// 	it.ordinancesubjectmatterid = it.objid
+		// 	it.objid = entity.objid
+		// 	em.create(it, 'legislativearchivesubjectmatter')
+		// }
+
+		deletedCommittee.each{
+			em.deleteCommittee([objid:entity.objid, ordinancecommitteeid:it.objid])
+		}
+
+		newCommittee.each{
+			it.ordinancecommitteeid = it.objid
+			it.objid = entity.objid
+			em.create(it, 'legislativearchivecommittee')
+		}
+
+		deletedAuthor.each{
+			em.deleteAuthor([objid:entity.objid, ordinanceentityid:it.objid])
+		}
+
+		newAuthor.each{
+			it.ordinanceentityid = it.objid
+			it.objid = entity.objid
+			em.create(it, 'legislativearchiveauthor')
+		}
+
+		deletedCoAuthor.each{
+			em.deleteCoAuthor([objid:entity.objid, ordinanceentityid:it.objid])
+		}
+
+		newCoAuthor.each{
+			it.ordinanceentityid = it.objid
+			it.objid = entity.objid
+			em.create(it, 'legislativearchivecoauthor')
+		}
+
+	}
+	void afterCreate(o){
+		saveitems(o);
+	}
+
+	void afterUpdate(o){
+		saveitems(o);
+	}
+
+	void beforeRemoveEntity(o){
+		// em.deleteAllCategoryItems(o);
+		em.deleteAllClassificationItems(o);
+		// em.deleteAllSubjectMatterItems(o);
+		em.deleteAllCommitteeItems(o);
+		em.deleteAllAuthorItems(o);
+		em.deleteAllCoAuthorItems(o);
+	}
+
+	void beforeUpdate(o){
+		o.recordlog_dateoflastupdate =  dtSvc.serverDate
+		o.recordlog_lastupdatedbyuserid = env.USERID
+		o.recordlog_lastupdatedbyuser = env.FULLNAME
+	}
+
+	void beforeCreate(o){
+		o.state = 'DRAFT'
+		o.recordlog_datecreated = dtSvc.serverDate
+		o.recordlog_createdbyuserid = env.USERID
+		o.recordlog_createdbyuser = env.FULLNAME
+		o.recordlog_dateoflastupdate =  dtSvc.serverDate
+		o.recordlog_lastupdatedbyuserid = env.USERID
+		o.recordlog_lastupdatedbyuser = env.FULLNAME
+	}
+
+	public def getMonthFirstDate( dt ) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(dt);
+        cal.set( Calendar.DAY_OF_MONTH, 1 );
+        return dtSvc.format('yyyy-MM-dd', cal.getTime()) + " 00:00:00";
+    }
+
+ //    @ProxyMethod
+	// public void deleteCategoryItem( item ) {
+	// 	em.delete(item, 'legislativearchivecategory')
+	// }
+	@ProxyMethod
+	public def deleteClassificationItem( item ) {
+		em.delete(item, 'legislativearchiveclassification')	
+	}
+ // 	@ProxyMethod
+	// public def deleteSubjectMatterItem( item ) {
+	// 	em.delete(item, 'legislativearchivesubjectmatter')	
+	// }
+ 	@ProxyMethod
+	public def deleteCommitteeItem( item ) {
+		em.delete(item, 'legislativearchivecommittee')	
+	}
+ 	@ProxyMethod
+	public def deleteAuthorItem( item ) {
+		em.delete(item, 'legislativearchiveauthors')	
+	}
+ 	@ProxyMethod
+	public def deleteCoAuthorItem( item ) {
+		em.delete(item, 'legislativearchivecoauthors')	
+	}
+
+	@ProxyMethod
+	public def changestate( item ) {
+		beforeUpdate(item)
+		em.updatestate(item);	
+	}
+
+}

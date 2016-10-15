@@ -1,0 +1,128 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+import com.rameses.services.extended.*
+
+public class TagabukidRedflagService extends ActiveCrudListService {
+
+	@ActiveDB(value='document_redflag', em='tagabukid_etracs')
+	def em;
+
+	@ActiveDB(value='document_redflag', em='notification') 
+    def notifyem; 
+	
+	@Service("DateService")
+	def dateSvc;
+
+	@Service("SequenceService")
+	def seqSvc;
+
+	@Service('NotificationService')
+	def notificationService
+
+	@ActiveDB(value='userorg', em='tagabukid_etracs')
+	def emuserorg
+
+	@Service('TagabukidDTSService')
+	def dtssvc
+
+	@ActiveDB(value='userorg', em='postgrereferences')
+	def empostref
+
+	@Env
+	def env;
+
+	public void beforeCreate(o) {
+		o.dtfiled = dateSvc.getServerDate();
+		o.filedby = [objid:env.USERID, name: env.FULLNAME];
+		o.caseno = "RF-"+seqSvc.getNextFormattedSeries("DTS_REDFLAG");
+		o.effectivedate = dateSvc.getServerDate();
+		o.resolved = 0;
+		o.organizationid = o.org.OrgUnitId.toString();
+	}
+
+	@ProxyMethod
+	public void resolve(o) {
+		if(!o.remarks) throw new Exception('Please provide remarks')
+		o.dtresolved = dateSvc.getServerDate();
+		o.resolvedby = [objid:env.USERID, name: env.FULLNAME];
+		o.resolved = 1;
+		em.update( o );
+		def notification = notifyem.getByObjid([objid: o.objid])
+		dtssvc.createRedFlagResolveLog(o)
+		notification.each{
+			notificationService.removeMessage([objid: o.objid]); 
+		}
+	} 
+
+	@ProxyMethod
+	public def getOpenIssues(def o) {
+		if(!o.refid) throw new Exception("refid is required for DocumentRedFlag.getOpenIssues");
+		if(!o.blockaction) throw new Exception("blockaction is required for DocumentRedFlag.getOpenIssues");
+		return em.getOpenIssues(o);
+	}
+
+	public void afterOpen( o ) {
+		
+		def b = em.findDocumentInfo( o );
+        o.din = b.din;
+        o.title = b.title;
+        o.author = b.author;
+        o.description = b.description;
+        o.documenttype = b.documenttype;
+        o.recordlog = b.recordlog;
+        o.state = b.state;
+        o.refid = b.objid;
+        o.taskid = b.taskid;
+        o.org = empostref.getOrgById([orgid:"'"+o.organizationid+"'"])[0]
+       	
+        o.documenttype = dtssvc.open([barcodeid:o.din]).documenttype
+	}
+	public void afterCreate(o) {
+		def uesrorg = emuserorg.getUserByOrg([orgid:o.org.OrgUnitId.toString()])
+		def rf = []
+		rf.push(o)
+		uesrorg.each{
+			def x = [
+				objid : o.objid,
+				filedby : [objid:it.objid],
+				caseno : o.caseno,
+				message : o.message
+			]
+			rf.push(x)
+		}
+		//println rf.filedby.objid
+		dtssvc.createRedFlagLog(o)
+		notifyMessage(rf)
+	}
+
+	@ProxyMethod
+	public def isallowedtoopen(userid,redflagcreator) {
+		def org = dtssvc.getUserOrg(userid)
+		def user = emuserorg.getUserByOrg([orgid:org.organizationid])
+		def flag = false
+		user.each{
+			if(redflagcreator == it.objid){
+				flag = true
+			}
+		}
+		return flag
+	}
+
+	@ProxyMethod
+	public void notifyMessage(def o) {
+		o.each {
+	  		def m = [
+	            objid     		: it.objid, 
+	            senderid  		: env.USERID,
+	            sender    		: env.FULLNAME,
+	            recipientid   	: it.filedby.objid,
+	            recipienttype 	: 'user',
+	            message   		: 'NEEDS RESOLVING ' + it.caseno + ':' + it.message,
+	            filetype  		: 'document_redflag_resolve',
+	            data 	  		: [:],
+	        ];
+	        notificationService.addMessage( m );	
+		}
+	}
+}

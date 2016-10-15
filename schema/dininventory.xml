@@ -1,0 +1,20 @@
+<schema>
+	<element name="dininventory" tablename="din_inventory">
+		<field name="objid" primary="true"/>
+		<field name="prefix" primary="true"/>
+		<field name="startseries" required="true"/>
+		<field name="endseries" required="true"/>
+		<field name="startserialno" required="true"/>
+		<field name="endserialno" required="true"/>
+		<field name="qty" required="true"/>
+		<field name="orgid" required="true"/>
+		<field name="expdate" />
+		<field name="recordlog_datecreated" required="true"/>
+		<field name="recordlog_createdbyuserid" required="true"/>
+		<field name="recordlog_createdbyuser" required="true"/>
+		<field name="recordlog_dateoflastupdate" required="true"/>
+		<field name="recordlog_lastupdatedbyuserid" required="true"/>
+		<field name="recordlog_lastupdatedbyuser" required="true"/>
+	</element>
+</schema>
+

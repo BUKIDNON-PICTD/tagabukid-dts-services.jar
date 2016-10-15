@@ -1,0 +1,37 @@
+<schema>
+	<element name="btacsreconciliation" tablename="btacs_reconciliation">
+		<field name="objid" primary="true"/>
+		<field name="state" required="true"/>
+		<field name="txnno" required="true"/>
+		<field name="documentid" required="true"/>
+		<field name="organizationid" required="true"/>
+		<field name="organizationname" required="true"/>
+		<field name="organizationcode" />
+		<field name="signatoryname" required="true"/>
+		<field name="signatoryposition" />
+		<field name="recordlog_datecreated" required="true"/>
+		<field name="recordlog_createdbyuserid" required="true"/>
+		<field name="recordlog_createdbyuser" required="true"/>
+		<field name="recordlog_dateoflastupdate" required="true"/>
+		<field name="recordlog_lastupdatedbyuserid" required="true"/>
+		<field name="recordlog_lastupdatedbyuser" required="true"/>
+	</element>
+	<element name="btacsreconciliationpersonnel" tablename="btacs_reconciliation_personnel">
+		<field name="objid" primary="true"/>
+		<field name="parentid" required="true"/>
+		<field name="personnelid" required="true"/>
+		<field name="fullname" required="true"/>
+	</element>
+	<element name="btacsreconciliationpersonnelitem" tablename="btacs_reconciliation_personnel_item">
+		<field name="objid" primary="true"/>
+		<field name="parentid" required="true"/>
+		<field name="state" required="true"/>
+		<field name="leaveclassid" required="true"/>
+		<field name="leavename" required="true"/>
+		<field name="reconciliationdate" required="true"/>
+		<field name="approverid" />
+		<field name="approvername" />
+		<field name="approverdate" />
+		<field name="remarks" />
+	</element>
+</schema>

@@ -1,0 +1,24 @@
+[getUsers]
+SELECT USERID,NAME,GENDER,TITLE,BIRTHDAY,STREET,LEN(STREET) AS LEN FROM USERINFO ORDER BY USERID
+
+[changeINHRIS]
+UPDATE USERINFO SET CITY = 'VALIDID' WHERE USERID = $P{userid}
+
+[changeNOTINHRIS]
+UPDATE USERINFO SET CITY = 'NOTINHRIS' WHERE USERID = $P{userid}
+
+[getUsersWithNoHRMISId]
+SELECT USERID,NAME,GENDER,TITLE,BIRTHDAY,STREET FROM USERINFO WHERE CITY = 'NOTINHRIS' ORDER BY USERID
+
+[changePersonId]
+UPDATE USERINFO SET STREET = $P{personid} WHERE USERID = $P{userid}
+
+[changesync]
+UPDATE USERINFO SET GENDER = $P{gender}, BIRTHDAY = $P{birthdate} WHERE USERID = $P{userid}
+
+
+[getProfileFromHRMIS]
+SELECT * FROM hrmis."tblProfile" WHERE "PersonId" = ${attdbid}
+
+[getPersonId]
+SELECT * FROM hrmis."tblProfile" WHERE ${name} LIKE  '%' || "Name_LastName" || '%' AND ${name} LIKE  '%' || "Name_FirstName" || '%'

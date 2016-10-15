@@ -1,0 +1,13 @@
+<schema>
+	<element name="btacsreconciliationpersonnelitem" tablename="btacs_reconciliation_personnel_item">
+		<field name="objid" primary="true"/>
+		<field name="parentid" required="true"/>
+		<field name="state" required="true"/>
+		<field name="leaveclassid" required="true"/>
+		<field name="reconciliationdate" required="true"/>
+		<field name="approverid" />
+		<field name="approvername" />
+		<field name="approverdate" />
+		<field name="remarks" />
+	</element>
+</schema>

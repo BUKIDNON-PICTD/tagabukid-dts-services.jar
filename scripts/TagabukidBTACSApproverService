@@ -1,0 +1,59 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+
+class TagabukidBTACSApproverService extends ActiveCrudListService
+{
+
+	@ActiveDB(value='btacsapprover', em='tagabukid_etracs')
+	def em
+
+	@Env
+	def env;
+
+	@Service('DateService')
+	def dtSvc 
+
+	void beforeList(params){
+		if (params == null) params = [:]
+		params.searchtext = (params.searchtext ? params.searchtext :'')+'%'
+	}
+
+	@ProxyMethod
+	public def getColumns( params ) {
+		return [
+			[name:"lastname", caption:"Lasta Name", width:40],
+            [name:"firstname", caption:"First Name", width:250],
+            [name:"middlename", caption:"Middle Name", width:100],
+		]	
+	}
+
+	
+	@ProxyMethod
+	public def getList( params ) {
+		beforeList(params)
+		def btacsapprover = em.getList(params)
+		btacsapprover.each{
+			it.fullname = it.firstname + " " + it.middlename + " " + it.lastname;
+		}
+
+		return btacsapprover
+	} 
+
+
+	@ProxyMethod
+	public def findById( objid ) {
+		return em.findById([objid:objid])
+	}
+
+
+	void beforeCreate(o){
+
+		o.profileid = o.hrmisprofile.PersonId;
+		o.lastname = o.hrmisprofile.Name.LastName;
+		o.firstname = o.hrmisprofile.Name.FirstName;
+		o.middlename = o.hrmisprofile.Name.MiddleName;
+	}
+
+
+}

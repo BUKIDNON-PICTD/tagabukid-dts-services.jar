@@ -1,0 +1,52 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+
+class TagabukidTCReportServiceInterceptor {
+
+	@PersistenceContext("main")
+    def em; 
+
+    @ActiveDB('tagabukidtcreport')
+    def db;
+
+
+   
+	@After(pattern="RemittanceReportService.getRCDReportData")
+	public def sortRemittanceCollectionSummary(def evt) { 
+		def remittance = evt.result 
+        def params = [ remittanceid: evt.args[0].objid, fundid:'%' ]; 
+		remittance.collectionsummaries = db.getRCDCollectionSummaries( params ); 
+
+	}
+
+    @After(pattern="RemittanceReportService.getFundlist")
+    public def remittanceGetListFund(def evt) { 
+        def list = evt.result 
+        list.push([objid:'%',title:'ALL'])
+
+    }
+
+    @After(pattern="LiquidationReportService.getRCDReportData")
+    public def sortLiquidationCollectionSummary(def evt) { 
+        def liquidation = evt.result 
+        liquidation.collectionsummaries = db.getRCDCollectionSummary( evt.args[0] ); 
+
+    }
+
+  
+
+    @After(pattern="LiquidationReportService.getRCDSummaryData")
+    public def liquidationRCDsignatory(def evt) { 
+        def liquidation = evt.result 
+        def item = db.getLiquidationCashierList(); 
+        liquidation.collectionsummaries = db.getRCDCollectionSummary( evt.args[0] ); 
+        liquidation.cashier.name = item.name[0]
+        liquidation.cashier.title = item.jobtitle[0]
+       
+
+    }
+
+
+	
+}

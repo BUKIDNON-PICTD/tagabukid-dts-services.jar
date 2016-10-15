@@ -1,0 +1,32 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+import com.rameses.common.*
+import com.rameses.services.extended.*
+
+class BTACSKioskService {
+
+	@ActiveDB(value='btacskiosk', em='btacs')
+	def em; 
+
+	@Env
+	def env;
+	
+	@ProxyMethod
+	public def GetOfficeList () {
+		def officelist = em.getOfficeList()
+		return officelist; 
+	}
+
+	@ProxyMethod
+	public def GetEmployeeList (param) {
+		return em.getEmployeeList([deptid:param])
+	}
+
+
+	@ProxyMethod
+	public def GetSignatoryList () {
+		return em.getSignatoryList()
+	}
+
+}

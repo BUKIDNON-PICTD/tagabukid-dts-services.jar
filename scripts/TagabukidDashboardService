@@ -1,0 +1,50 @@
+import com.rameses.annotations.*;
+import com.rameses.services.extended.*;
+import java.rmi.server.*;
+
+class TagabukidDashboardService{
+	
+	@ActiveDB('tagabukiddash')
+	def em
+
+	@ActiveDB(value='tagabukiddash', em='tagabukid_etracs')
+	def emt
+
+
+	@Service('NumberService')
+    def numSvc  
+
+	@XConnection("tagabukidpoll")
+	def test_poll;  
+
+	@Service 
+	def self; 
+
+	@ProxyMethod() 
+	public void dash() { 
+		def data = [
+			ptodash	:	em.getDashData(),
+			subay 	:	emt.getDashData2(),
+		] 
+		
+		data.ptodash.each{
+			if(it.type == 'double'){
+				it.total = numSvc.format('#,##0.00',it.total);
+			}
+			
+		}
+		
+		self.notifyHttp( [data: data ]); 
+	} 
+
+	@Async 
+	@ProxyMethod(local=true) 
+	public void notifyHttp( data ) { 
+		if ( data ) { 
+			//println "SENDING DATA:" + data
+			test_poll.send( data );  
+		} 
+	} 
+	
+}
+

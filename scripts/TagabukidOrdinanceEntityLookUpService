@@ -1,0 +1,61 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+
+class TagabukidOrdinanceEntityLookUpService
+{
+
+	@ActiveDB(value='ordinanceentity', em='tagabukid_etracs')
+	def em
+
+	@ActiveDB('ordinanceentity')
+	def emx
+
+	@Env
+	def env;
+
+	@Service('DateService')
+	def dtSvc 
+
+	void beforeList(params){
+		if (params == null) params = [:]
+		params.searchtext = (params.searchtext ? params.searchtext :'')+'%'
+	}
+
+	void afterList( params, list ) {
+		list.each{ formatAddress( it?.address, ", " ) } 
+	} 
+
+	void formatAddress( x, delimiter ) { 
+		if ( !x ) return;
+
+		def txt1 = [x.unitno, x.bldgno, x.bldgname].findAll{ (it? true: false) }.join(" ").trim(); 
+		def txt2 = [x.street, x.subdivision].findAll{ (it? true: false) }.join(" ").trim(); 
+		def txt3 = [x.barangay?.name, x.city, x.municipality, x.province].findAll{ (it? true: false) }.join(", ").trim(); 
+		def result = [txt1, txt2, txt3].findAll{ (it? true: false) }.join( delimiter ).trim(); 
+		if (result) x.text = result; 
+	} 
+
+
+	@ProxyMethod
+	public def getList( params ) {
+		beforeList(params)
+		def orentity = em.getLists(params)
+		return mergeEntityList(orentity,params)
+	} 
+	@ProxyMethod
+	public def mergeEntityList(orentity,params){
+		if (params == null) params = [:]
+		params.searchtext = (params.searchtext ? params.searchtext :'')+'%'
+
+		params.filter = "AND objid IN ('" + orentity.entity.objid.join("','") + "')";
+		def entity = emx.getEntityList(params)
+		entity.each{ y ->
+			y.objid = orentity.find{ it.entity.objid == y.objid }.objid
+		}
+		return entity
+	}
+
+
+
+}

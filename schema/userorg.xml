@@ -1,0 +1,13 @@
+<schema>
+	<element name="userorg" tablename="user_organization">
+		<field name="objid" primary="true"/>
+		<field name="organizationid" required="true"/>
+		<field name="macaddress" />
+		<field name="orgname" />
+		<field name="orgcode" />
+		<field name="address" />
+	</element>
+</schema>
+
+
+	

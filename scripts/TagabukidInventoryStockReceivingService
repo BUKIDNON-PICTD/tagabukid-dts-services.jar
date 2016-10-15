@@ -1,0 +1,103 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+import com.rameses.common.*
+import com.rameses.services.extended.*
+
+class TagabukidInventoryStockReceivingService extends ActiveCrudListService {
+
+	@ActiveDB(value='inventorystockreceiving', em='tagabukid_peedmo')
+	def em;
+
+	@Service("SequenceService") 
+	def seqSvc;
+
+	@Service("DateService") 
+	def dateSvc;
+
+	@Env
+	def env;
+
+	@ProxyMethod
+	public def initNew(o) {
+		def entity= [:]
+		entity.objid = "INV"+ new UID();
+		entity.createdbyid = env.USERID
+       	entity.createdbyname = env.FULLNAME
+       	entity.items = []
+       	entity.dtfiled = dateSvc.getServerDate()
+       	entity.state = 'DRAFT'
+		return entity
+	}
+
+
+	@ProxyMethod
+	public def getreqitems(o) {
+		return em.getItems(o)
+	}
+	@ProxyMethod
+	public def getNodes( def o ) {
+		return [
+			[state:'OPEN', caption:'Open' ],
+			[state:'CLOSED', caption:'Closed' ]
+		];
+	}
+
+	@ProxyMethod
+	public def getColumns( def o ) {
+		return[
+			[name:'issueno', caption:'Req No' ],
+			[name:'dtfiled', caption:'Date Filed' ],
+			[name:'user.name', caption:'Received By'],
+			[name:'state', caption:'State' ],
+		];
+	}
+	
+	public void beforeList(o) {
+		// o.filter = '''AND r.reqtype IN ('INVENTORY')  '''
+		o.filter = '''AND 1=1  '''
+	} 
+
+	void beforeCreate( def o ) {
+		o.issueno = "ISU" + seqSvc.getNextFormattedSeries("ISU");
+		o.dtfiled = dateSvc.serverDate;
+		o.state = "CLOSED";
+		o.reqtype = 'INVENTORY'
+		o.user = [objid:env.USERID, name:env.FULLNAME, title:env.JOBTITLE];
+	}
+	
+	void afterCreate( o ) {
+		o.items.each {
+			it.objid = "ISUPROD"+new UID();
+			it.parentid = o.objid;
+			it.qtyrequested = it.qty
+			em.create( it, "item" );
+		}
+		println o.requestid	
+		em.closeRequest([objid:o.requestid])
+	}
+
+	// //use this to open the file
+	// void afterList(o,list) {
+	// 	list.each {
+	// 		it._filetype = "stockrequest:"+it.reqtype.toLowerCase();
+	// 	}
+	// }
+
+	//use to display handler per each item
+	void afterOpen( o ) {
+		o.items = em.getInventoryItems(o);
+		o.createdbyid= o.user.objid
+	    o.createdbyname= o.user.name
+		o.items.each {
+			it.qty = it.qtyrequested	
+		}
+	}
+
+	@ProxyMethod 
+	void deleteRequest(o) {
+		em.deleteRequest(o)
+	}
+
+
+}

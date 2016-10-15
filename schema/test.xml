@@ -1,0 +1,10 @@
+<schema>
+	<element name="test" tablename="test">
+		<field name="name" primary="true"/>
+		<field name="category" required="true"/>
+		<field name="municipality" required="true"/>
+		<field name="barangay" required="true"/>
+		<field name="precinct" primary="true"/>
+		<field name="votes" />
+	</element>
+</schema>

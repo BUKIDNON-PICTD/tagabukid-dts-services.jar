@@ -1,0 +1,101 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+
+public class PaperlessCertificationService extends ActiveCrudListService
+{
+	@ActiveDB(value='paperlesscertification', em='paperlesscertification')
+	def em;
+
+	@Service('SequenceService')
+	def seqSvc
+
+	@Service('ReportParameterService')
+	def rpsvc
+
+	@Service('DateService')
+	def dtSvc
+
+	@Env
+	def env; 
+
+	@ProxyMethod
+	public def getColumns(params){
+		return [
+			[name:'title', caption:'Title'],
+			[name:'bldglocation', caption:'Location'],
+			[name:'outdate', caption:'Date of Interruption'],
+			[name:'statuses', caption:'Turned On'],
+			[name:'applications', caption:'Applicability'],
+		]
+	}
+
+
+	void saveCertitems(cert){
+		cert.items.each{			/*loop ni, equivalent sa for loop */
+			em.save(it, 'certificationoffice');
+		}
+	}
+
+
+	public void afterOpen(cert){
+		
+		cert.items = getItems(cert)
+	}
+
+	void beforeCreate(cert){
+		cert.txndate = dtSvc.serverDate
+		cert.certseq = dtSvc.getServerYear() +"-"+ seqSvc.getNextFormattedSeries('cert' + dtSvc.getServerYear()) ;
+		cert.preparedbyid = env.USERID
+		cert.preparedbyname = env.FULLNAME
+		cert.state = 'PENDING'
+	}
+
+	void afterCreate(cert){
+		saveCertitems(cert);
+	}
+
+	void afterUpdate(cert){
+		saveCertitems(cert);
+	}
+
+	//void afterList(params,o){
+	//	println "TEST"
+	//	def filter = "receiptid IN ('" + o.receiptid.join("','") + "')";
+	//	def voidedReceipt = emmain.getVoidedReceipt([filter:filter])
+	//	println voidedReceipt
+	//	voidedReceipt.each{ y ->
+	//		o.find{ it.receiptid == y.receiptid }.state = "VOIDED"
+	//	}
+	//}
+
+	void beforeUpdate(o){
+		o.recordlog_dateoflastupdate =  dtSvc.serverDate
+		o.recordlog_lastupdatedbyuserid = env.USERID
+		o.recordlog_lastupdatedbyuser = env.FULLNAME
+	}
+
+	@ProxyMethod
+	public def getCertificationReportData(cert){
+		cert = open(cert)
+		cert.churvaness = em.getCertificationReport(cert)
+		cert.params = rpsvc.getStandardParameter()
+		//println cert.churvaness
+		
+		return cert
+	}
+
+	@ProxyMethod
+	public def getItems(cert){
+		return em.getCertitems(cert);
+	}
+
+	@ProxyMethod
+	public def changestate( cert ) {
+		beforeUpdate(cert)
+		em.updatestate(cert);	
+	}
+
+
+	
+}

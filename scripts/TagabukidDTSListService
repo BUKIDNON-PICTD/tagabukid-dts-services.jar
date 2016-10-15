@@ -1,0 +1,105 @@
+import com.rameses.annotations.*;
+import com.rameses.services.extended.*;
+import java.rmi.server.*;
+
+
+class TagabukidDTSListService extends ActiveCrudListService  {
+
+	@ActiveDB(value='dts', em='tagabukid_etracs')
+	def em
+
+	@Service("DateService")
+	def dateSvc;
+
+	@Service("TagabukidDTSService")
+	def dtssvc;
+
+	@Env
+	def env;
+
+	@ProxyMethod
+	public def getNodes(o) {
+		def nodes = [];
+		nodes << [name:'idle',  caption: 'Idle', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'outgoing',  caption: 'Outgoing', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'enroute', caption: 'En Route', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'processing', caption: 'Processing', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'archived', caption: 'Archived/Closed/Attached', leaf:true, allowSearch:true, folder:true];
+		return nodes;
+	}	
+
+	@ProxyMethod
+	public def getColumns(o) {
+		def cols = [];
+		cols <<	[name:'din', caption:'DIN', width:120, resizable:false];
+		cols <<	[name:'state', caption:'State', width:120, resizable:false];
+		cols <<	[name:'title', caption:'Title', width:130];
+		cols <<	[name:'documenttype.name', caption:'Document Type', width:130];
+		cols << [name:'recordlog.datecreated', caption:'Date Created', width:130, resizable:false];
+		cols <<	[name:'recordlog.createdbyuser', caption:'Created By', width:130, resizable:false];
+		cols <<	[name:'orgname', caption:'Origin', width:130];
+		cols <<	[name:'actor.name', caption:'OIC/Liaison', width:130, resizable:false];
+		//cols <<	[name:'assignee.name', caption:'Performed By', width:130, resizable:false];
+		cols <<	[name:'name', caption:'Location', width:140, resizable:true];
+		return cols;
+	}
+
+	public void beforeList(o) {
+		o._pagingKeys = "d.objid";
+		o.filter = '';
+		//int activeyear = dateSvc.getServerYear();
+		def userorgid  = dtssvc.getUserOrg(env.USERID).organizationid
+		o.userorgid = userorgid
+
+		
+		o.filter += ''' AND (d.din LIKE $P{searchtext}
+		OR d.title LIKE $P{searchtext}
+		OR d.description LIKE $P{searchtext})'''
+	
+
+		switch(o.name) {
+			case 'search':
+					if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "?";
+					else{
+						o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed')) AND (ug.organizationid = $P{userorgid} OR dto.orgid = $P{userorgid} OR ug2.organizationid = $P{userorgid})''';	
+					}
+				// if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "%";
+				break;
+				
+			//--------------- processing--------------------	
+			case 'idle':
+				
+				o.state = 'idle';
+				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (ug.organizationid = $P{userorgid} OR dto.orgid = $P{userorgid} OR ug2.organizationid = $P{userorgid})''';
+				break;
+
+			case 'outgoing':
+				
+				o.state = 'outgoing';
+				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (ug.organizationid = $P{userorgid} OR ug2.organizationid = $P{userorgid})''';
+				break;
+
+			case 'enroute':
+				
+				o.state = 'enroute';
+				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (dto.orgid = $P{userorgid} OR ug2.organizationid = $P{userorgid})''';
+				break;
+
+			case 'processing':
+				
+				o.state = 'processing';
+				o.filter += ''' AND dt.state IN ('processing','linked') AND dt.enddate IS NULL AND (ug.organizationid = $P{userorgid} OR dto.orgid = $P{userorgid})''';
+				break;
+
+			case 'archived':
+				
+				o.state = 'archived';
+				o.filter += ''' AND dt.state IN ('attached','archived','closed') AND (ug.organizationid = $P{userorgid} OR dto.orgid = $P{userorgid})''';
+				break;
+
+			default:
+				break;
+		}
+	}
+
+} 

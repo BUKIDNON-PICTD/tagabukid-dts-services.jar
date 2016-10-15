@@ -1,0 +1,25 @@
+<schema>
+
+	<element name="purchasestockrequest" tablename="stockrequest">
+		<field name="objid" primary="true"/>	
+		<field name="state" />
+		<field name="parentid" />
+		<field name="reqtype" required="true"/>
+		<field name="reqno" required="true"/>
+		<field name="dtfiled" required="true"/>
+		<field name="requester_objid" required="true"/>
+		<field name="requester_name" required1="true"/>
+		<field name="requester_title" />
+	</element>
+	
+	<element name="item" tablename="stockrequestitem">
+		<field name="objid" primary="true"/>			
+		<field name="parentid" required="true"/>
+		<field name="item_objid" required="true"/>
+		<field name="item_code" required="true"/>
+		<field name="item_title" required="true"/>
+		<field name="unit" required="true"/>
+		<field name="qty" required="true"/>
+	</element>	
+
+</schema>

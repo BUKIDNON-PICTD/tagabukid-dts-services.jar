@@ -1,0 +1,160 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+
+class TagabukidBTACSRFEditInfoService
+{
+
+	@ActiveDB(value='btacsreconciliation', em='tagabukid_etracs')
+	def em
+
+	@Env
+	def env;
+
+	@Service("SequenceService")
+	def seqSvc;
+
+	@Service('DateService')
+	def dtSvc 
+
+	void beforeList(params){
+		if (params == null) params = [:]
+		params.searchtext = (params.searchtext ? params.searchtext :'')+'%'
+	}
+
+	@ProxyMethod
+	public def getColumns( params ) {
+		return [
+			[name:"txnno", caption:"Reconciliation No.", width:40],
+			[name:"state", caption:"State", width:250],
+            [name:"organizationname", caption:"Organization/ Office", width:250],
+            [name:"organizationcode", caption:"Code", width:250],
+            [name:"signatoryname", caption:"Signatory", width:250],
+            [name:"recordlog_datecreated", caption:"Date Created", width:250],
+		]	
+	}
+
+	
+	@ProxyMethod
+	public def getList( params ) {
+		beforeList(params)
+		def btacsreconciliation = em.getList(params)
+		// btacsapprover.each{
+		// 	it.signatory.fullname = it.firstname + " " + it.middlename + " " + it.lastname;
+		// }
+
+		return btacsapprover
+	} 
+
+
+	@ProxyMethod
+	public def findById( objid ) {
+		return em.findById([objid:objid])
+	}
+
+	void afterCreate(o){
+		saveitems(o);
+	}
+
+	void afterUpdate(o){
+		saveitems(o);
+	}
+
+	void saveitems(entity){
+		def oldPersonnels = em.getreconciliationpersonnels([parentid:entity.objid])
+		if (!entity.personnels)
+			entity.personnels = []
+
+		def deletePersonnels 	= oldPersonnels - entity.personnels
+		def newPersonnels 		= entity.personnels - oldPersonnels
+
+		deletePersonnels.each{
+			em.deletepersonnels([objid:it.objid])
+		}
+
+		newPersonnels.each{ personnel ->
+			
+			personnel.parentid = entity.objid
+			em.create(personnel, 'btacsreconciliationpersonnel')
+
+			def oldItems = em.getreconciliationpersonnelitems([parentid:personnel.objid])
+			if (!personnel.items)
+				personnel.items = []
+
+			def deleteItems 	= oldItems - personnel.items 
+			def newItems 		= personnel.items - oldItems
+
+			deleteItems.each{
+				em.deleteitems([objid:it.objid])
+			}
+
+			newItems.each{
+				it.parentid = personnel.objid
+				em.create(it, 'btacsreconciliationpersonnelitem')
+			}
+		}
+
+	}
+
+	void beforeUpdate(o){
+		o.recordlog_dateoflastupdate =  dtSvc.serverDate
+		o.recordlog_lastupdatedbyuserid = env.USERID
+		o.recordlog_lastupdatedbyuser = env.FULLNAME
+	}
+
+	void beforeCreate(o){
+		o.objid = 'R' + new java.rmi.server.UID()
+		o.state = 'DRAFT'
+		o.txnno = seqSvc.getNextFormattedSeries("BTACS");
+		o.recordlog.datecreated = dtSvc.serverDate
+		o.recordlog.createdbyuserid = env.USERID
+		o.recordlog.createdbyuser = env.FULLNAME
+		o.recordlog.dateoflastupdate =  dtSvc.serverDate
+		o.recordlog.lastupdatedbyuserid = env.USERID
+		o.recordlog.lastupdatedbyuser = env.FULLNAME
+	}
+
+	@ProxyMethod
+	public void create(o) {
+		def docinfo = o.docinfo
+		docinfo.documentid = o.objid
+		beforeCreate(docinfo);
+		em.create(docinfo);
+		afterCreate(docinfo);
+	}
+
+	@ProxyMethod
+    public def open(objid){
+    	def reconciliation = em.findBTACSReconciliationById([documentid:objid])
+    	reconciliation.personnels = em.getBTACSPersonnels([parentid:reconciliation.objid])
+    	reconciliation.personnels.each{ personnel ->
+    		// println personnel
+    		personnel.items = em.getBTACSPersonnelItems([parentid:personnel.objid])
+    		personnel.items.each{
+    			it.LeaveName = it.leavename
+    		}
+    	}
+		return reconciliation
+		
+    }
+
+    @ProxyMethod
+    public void approveitems(o){
+		o.personnels.each{ personnel ->
+			def latestlog = em.getLatestLog([USERID:personnel.personnelid])
+			personnel.items.each{ item ->
+				if(reconciliationdate > latestlog){
+					throw new Exception("Please download latest log for " + personnel.fullname);
+				}
+
+				def blanklog = em.getblanklogs([reconciliationdate:item.reconciliationdate,personnelid:personnel.personnelid])
+				
+				
+
+
+			}
+
+		}	
+    }
+
+}

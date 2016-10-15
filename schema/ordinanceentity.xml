@@ -1,0 +1,6 @@
+<schema>
+	<element name="ordinanceentity" tablename="ordinanceentity">
+		<field name="objid" primary="true"/>
+		<field name="entity_objid" required="true"/>
+	</element>
+</schema>

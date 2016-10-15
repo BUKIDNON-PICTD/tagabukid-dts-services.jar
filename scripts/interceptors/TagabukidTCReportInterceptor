@@ -1,0 +1,29 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+
+class TagabukidBusinessPermitServiceInterceptor {
+
+	@Service('RPTUtil')
+    def util
+
+    @Service('ReportParameterService')
+    def paramSvc 
+
+    @Service('DateService')
+    def dtSvc 
+	
+	@After(pattern="BusinessPermitService.getReport")
+	public def addParameters(def evt) { 
+		def perm = evt.result 
+		buildAdditionalInfo(perm)
+	}
+
+	void buildAdditionalInfo(perm){
+        def pdate = dtSvc.parseDate(perm.dtissued, null)
+        perm.issueday      = util.formalizeNumber(pdate.day)
+        perm.issuemonth    = util.getMonthName(pdate.month)
+        perm.issueyear     = pdate.year +''
+        perm.issueplace    = paramSvc.standardParameter.LGUFORMALNAME
+    }
+}

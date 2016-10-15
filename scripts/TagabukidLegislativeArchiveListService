@@ -1,0 +1,73 @@
+import com.rameses.annotations.*;
+import com.rameses.services.extended.*;
+import java.rmi.server.*;
+
+
+class TagabukidLegislativeArchiveListService extends ActiveCrudListService  {
+
+	@ActiveDB(value='legislativearchive', em='tagabukid_etracs')
+	def em
+
+	@Service("DateService")
+	def dateSvc;
+
+	@ProxyMethod
+	public def getNodes(o) {
+		def nodes = [];
+		nodes << [name:'draft',  caption: 'Draft', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'forreview', caption: 'For Review', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'forapproval', caption: 'For Approval', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'approved', caption: 'Approved', leaf:true, allowSearch:true, folder:true];
+		return nodes;
+	}	
+
+	@ProxyMethod
+	public def getColumns(o) {
+		def cols = [];
+		cols << [name:"ordresno", caption:"Ordinance/Resolution No.", width:50];
+		cols << [name:"state", caption:"State", width:50];
+		cols << [name:"rsno", caption:"RS No.", width:30];
+		cols << [name:"spno", caption:"SP No.", width:30];
+		cols << [name:"title", caption:"Title", width:800];
+		cols << [name:"approveddate", caption:"Date Approved", width:50];
+		cols << [name:"publicationdate", caption:"Date of Publication", width:50];
+		return cols;
+	}
+
+	public void beforeList(o) {
+		o._pagingKeys = "objid";
+		o.filter = '';
+		//int activeyear = dateSvc.getServerYear();
+
+		switch(o.name) {
+			case 'search':
+				if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "?";
+				break;
+				
+			//--------------- processing--------------------	
+			case 'draft':
+				o.state = 'DRAFT';
+				o.filter = ''' AND state = $P{state} ''';
+				break;
+
+			case 'forreview':
+				o.state = 'FORREVIEW';
+				o.filter = ''' AND state = $P{state} ''';
+				break;
+
+			case 'forapproval':
+				o.state = 'FORAPPROVAL';
+				o.filter = ''' AND state = $P{state} ''';
+				break;
+
+			case 'approved':
+				o.state = 'APPROVED';
+				o.filter = ''' AND state = $P{state} ''';
+				break;
+
+			default:
+				break;
+		}
+	}
+
+} 

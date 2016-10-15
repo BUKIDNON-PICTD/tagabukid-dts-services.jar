@@ -1,0 +1,356 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*
+import com.rameses.services.extended.*;
+import com.rameses.util.*;
+
+class TagabukidLegislativeArchiveMigrationService 
+{
+	// @ActiveDB(value='legarchive', em='postgre')
+	// def em
+
+	@ActiveDB(value='legislativearchive', em='tagabukid_etracs')
+	def emlegarchive
+
+	// @ActiveDB(value='ordinancecategory', em='tagabukid_etracs')
+	// def emcat
+
+	// @ActiveDB(value='ordinanceclassification', em='tagabukid_etracs')
+	// def emclas
+
+	// @ActiveDB(value='ordinancesubjectmatter', em='tagabukid_etracs')
+	// def emsub
+
+	// @ActiveDB(value='ordinancecommittee', em='tagabukid_etracs')
+	// def emcom
+
+	// @ActiveDB(value='ordinanceentity', em='tagabukid_etracs')
+	// def ement
+
+	// @ActiveDB('legarchive')
+	// def xem
+
+	// @ActiveDB("entityindividual")
+	// def	emind; 
+
+	// @Service('EntityService')
+	// def entitySvc;
+
+	// @Service('SequenceService')
+	// def seqSvc;
+
+	// @Service('DateService')
+	// def dtSvc 
+
+	// @ProxyMethod
+	// public def migrateLegArchive () {
+	// 	def doc = em.getDocuments();
+	// 	// return doc
+	
+	// 	doc.each{ o->
+	// 		def extended = em.serializer.read(o.Extended.replace('{','[').replace('}',']'));
+	// 		println extended
+	// 		def newdoc = [
+	// 			objid                        : o.DocumentId.toString(),			
+	// 			ordresno                     : extended.OrdResNo,		
+	// 			rsno                         : extended.RSNo, 		
+	// 			spno                         : extended.SPNo, 		
+	// 			title                        : extended.Title, 		
+	// 			approveddate                 : dtSvc.parse("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",extended.DateApproved == null ? extended.DateOfPublication : extended.DateApproved) , 		
+	// 			publicationdate              : dtSvc.parse("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",extended.DateOfPublication), 		
+	// 			remarks                      : extended.Remarks, 		
+	// 			recordlog_datecreated        : o.RecordLog.DateCreated,
+	// 			recordlog_createdbyuserid    : "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_createdbyuser      : o.RecordLog.CreatedByUser,
+	// 			recordlog_dateoflastupdate   : o.RecordLog.DateCreated,
+	// 			recordlog_lastupdatedbyuserid: "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_lastupdatedbyuser  : o.RecordLog.CreatedByUser,
+	// 		]
+	// 		emlegarchive.create(newdoc)
+	// 		// println extended.Classification
+	// 		// def category       = em.serializer.read( == "" ? null : extended.Category);
+	// 		// def classification = em.serializer.read( == "" ? null : extended.Classification);
+	// 		// def subjectmatter  = em.serializer.read( == "" ? null : extended.SubjectMater);
+	// 		// def committee      = em.serializer.read( == "" ? null : extended.ConcernedCommittees);
+	// 		// def author         = em.serializer.read( == "" ? null : extended.Author);
+	// 		// def coauthor       = em.serializer.read( == "" ? null : extended.CoAuthor);
+
+	// 		// extended.Category.each{
+	// 		// 	def n =[
+	// 		// 		objid              : o.DocumentId.toString(),
+	// 		// 		ordinancecategoryid: it.toString(),
+	// 		// 	]
+
+	// 		// 	emlegarchive.create(n, 'legislativearchivecategory')
+	// 		// }
+	// 		def classification = []
+	// 		if (extended.Classification != "")
+	// 		classification << extended.Classification
+
+	// 		classification.each{
+	// 			def n =[
+	// 				objid                    : o.DocumentId.toString(),
+	// 				ordinanceclassificationid: it.toString(),
+	// 			]
+	// 			emlegarchive.create(n, 'legislativearchiveclassification')
+	// 		}
+	// 		extended.SubjectMater.each{
+	// 			def n =[
+	// 				objid                   : o.DocumentId.toString(),
+	// 				ordinancesubjectmatterid: it.toString(),
+	// 			]
+	// 			emlegarchive.create(n, 'legislativearchivesubjectmatter')
+	// 		}
+
+	// 		extended.ConcernedCommittees.each{
+	// 			def n =[
+	// 				objid               : o.DocumentId.toString(),
+	// 				ordinancecommitteeid: it.toString(),
+	// 			]
+	// 			emlegarchive.create(n, 'legislativearchivecommittee')
+	// 		}
+
+	// 		extended.Author.each{
+	// 			def n =[
+	// 				objid            : o.DocumentId.toString(),
+	// 				ordinanceentityid: it.toString(),
+	// 			]
+	// 			emlegarchive.create(n, 'legislativearchiveauthors')
+	// 		}
+
+	// 		extended.CoAuthor.each{
+	// 			def n =[
+	// 				objid            : o.DocumentId.toString(),
+	// 				ordinanceentityid: it.toString(),
+	// 			]
+	// 			emlegarchive.create(n, 'legislativearchivecoauthors')
+	// 		}
+
+	// 		println "SAVED " + o.DocumentId.toString()
+	// 	}
+	// 	println "DONE"
+	// }
+
+	// @ProxyMethod
+	// public def migrateLegArchiveMaster () {
+	// 	def cat = em.getCategory();
+	// 	def clas = em.getClassification();
+	// 	def sub = em.getSubjectMatter();
+	// 	def com = em.getCommittee();
+
+	// 	cat.each{
+	// 		def n = [
+	// 			objid                        : it.ObjId.toString(),
+	// 			state                        : "DRAFT",
+	// 			code                         : it.Entity.AcronymAbbreviation,
+	// 			name                         : it.Entity.Name,
+	// 			description                  : it.Entity.Description,
+	// 			recordlog_datecreated        : it.RecordLog.DateCreated,
+	// 			recordlog_createdbyuserid    : "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_createdbyuser      : it.RecordLog.CreatedByUser,
+	// 			recordlog_dateoflastupdate   : it.RecordLog.DateCreated,
+	// 			recordlog_lastupdatedbyuserid: "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_lastupdatedbyuser  : it.RecordLog.CreatedByUser,
+	// 		]
+	// 		emcat.create(n);
+	// 	}
+
+	// 	clas.each{
+	// 		println it
+	// 		def n = [
+	// 			objid                        : it.ObjId.toString(),
+	// 			state                        : "DRAFT",
+	// 			code                         : it.Entity.AcronymAbbreviation,
+	// 			name                         : it.Entity.Name,
+	// 			description                  : it.Entity.Description,
+	// 			recordlog_datecreated        : it.RecordLog.DateCreated,
+	// 			recordlog_createdbyuserid    : "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_createdbyuser      : it.RecordLog.CreatedByUser,
+	// 			recordlog_dateoflastupdate   : it.RecordLog.DateCreated,
+	// 			recordlog_lastupdatedbyuserid: "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_lastupdatedbyuser  : it.RecordLog.CreatedByUser,
+	// 		]
+	// 		emclas.create(n);
+	// 	}
+
+	// 	sub.each{
+	// 		def n = [
+	// 			objid                        : it.ObjId.toString(),
+	// 			state                        : "DRAFT",
+	// 			code                         : it.Entity.AcronymAbbreviation,
+	// 			name                         : it.Entity.Name,
+	// 			description                  : it.Entity.Description,
+	// 			recordlog_datecreated        : it.RecordLog.DateCreated,
+	// 			recordlog_createdbyuserid    : "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_createdbyuser      : it.RecordLog.CreatedByUser,
+	// 			recordlog_dateoflastupdate   : it.RecordLog.DateCreated,
+	// 			recordlog_lastupdatedbyuserid: "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_lastupdatedbyuser  : it.RecordLog.CreatedByUser,
+	// 		]
+	// 		emsub.create(n);
+	// 	}
+
+	// 	com.each{
+	// 		def n = [
+	// 			objid                        : it.ObjId.toString(),
+	// 			state                        : "DRAFT",
+	// 			code                         : it.Entity.AcronymAbbreviation,
+	// 			name                         : it.Entity.Name,
+	// 			description                  : it.Entity.Description,
+	// 			recordlog_datecreated        : it.RecordLog.DateCreated,
+	// 			recordlog_createdbyuserid    : "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_createdbyuser      : it.RecordLog.CreatedByUser,
+	// 			recordlog_dateoflastupdate   : it.RecordLog.DateCreated,
+	// 			recordlog_lastupdatedbyuserid: "MU"+ new java.rmi.server.UID(),
+	// 			recordlog_lastupdatedbyuser  : it.RecordLog.CreatedByUser,
+	// 		]
+	// 		emcom.create(n);
+	// 	}
+
+	// 	return "DONE";
+
+	// }
+
+	// @ProxyMethod
+	// public def migrateLegArchiveEntity () {
+	// 	def ent = em.getEntity();
+	// 	ent.each{
+	// 		buildEntity(it)
+	// 		buildEntityIndividual(it)
+	// 	}
+	// 	return "DONE"
+	// }
+	// void buildEntity(it){
+
+	// 	def eaddress = buildEntityAddress(it)
+		
+	// 	def e = [
+	// 		objid        		: it.ObjId.toString(),
+	// 		entityno			: "I" + seqSvc.getNextFormattedSeries( "INDIVIDUAL_ENTITY" ),
+	// 		name    			: it.PersonName.FirstName + " " + it.PersonName.LastName + " " + it.PersonName.LastName, 
+	// 		address_text  		: "PROVINCE OF BUKIDNON",
+	// 		mailingaddress  	: null,
+	// 		type  				: 'individual',
+	// 		remarks 			: null,
+	// 		entityname			: it.PersonName.FirstName + " " + it.PersonName.LastName + " " + it.PersonName.LastName,
+	// 		mobileno			: null,
+	// 		phoneno				: null,
+	// 		email				: null,
+	// 		address             : eaddress,
+	// 	]
+	// 	entitySvc.create(e)
+		
+	// }
+
+	// def buildEntityAddress(it){
+		
+	// 	def entityaddress = [
+	// 		objid        	: 'A' + new java.rmi.server.UID(),
+	// 		parentid		: it.ObjId.toString(),
+	// 		type    		: 'nonlocal',
+	// 		addresstype  	: null,
+	// 		barangay_objid  : null,
+	// 		barangay_name  	: null,
+	// 		city  			: null,
+	// 		municipality 	: null,
+	// 		province 		: null,
+	// 		bldgno			: null,
+	// 		bldgname		: null,
+	// 		unitno			: null,
+	// 		street			: null,
+	// 		subdivision		: null,
+	// 		pin 			: null
+	// 	]
+	// 	// def address = entity.entityaddress.split(',')
+	// 	// def barangay = address[0];
+		
+	// 	// boolean hasWhiteSpace = containsWhiteSpace(barangay);
+	// 	// if(hasWhiteSpace){
+	// 	// 	barangay = barangay.split(' ')[0]
+	// 	// }
+
+	// 	// barangay = barangay + '%'
+
+	// 	// def addressinfo = main.sqlContext.createQuery('''
+	// 	// 	SELECT * FROM sys_org WHERE name LIKE $P{address_text} AND orgclass = 'BARANGAY'
+	// 	// 	''').setParameter('address_text',barangay).singleResult;
+
+	// 	// if (addressinfo){
+			
+	// 	// 	entityaddress.barangay_objid = addressinfo.objid
+	// 	// 	entityaddress.barangay_name = addressinfo.name
+				
+	// 	// 	def municipalityinfo = main.sqlContext.createQuery('''
+	// 	// 	SELECT * FROM sys_org WHERE objid = $P{objid}
+	// 	// 	''').setParameter('objid',addressinfo.parent.objid).singleResult;		
+
+	// 	// 	entityaddress.municipality = municipalityinfo.name
+
+	// 	// 	def provinceinfo = main.sqlContext.createQuery('''
+	// 	// 	SELECT * FROM sys_org WHERE objid = $P{objid}
+	// 	// 	''').setParameter('objid',municipalityinfo.parent.objid).singleResult;	
+
+	// 	// 	entityaddress.province = provinceinfo.name	
+	// 	// }else{
+	// 	// 	if (address.grep('CITY')){
+	// 	// 		entityaddress.city = entity.entityaddress
+	// 	// 		entityaddress.addresstype = 'CITY'
+	// 	// 	}else{
+	// 	// 		entityaddress.municipality = entity.entityaddress
+	// 	// 		entityaddress.addresstype = 'MUNICIPALITY'
+	// 	// 	}
+
+	// 	// }
+		
+	// 	return entityaddress
+	
+	// }
+
+	// void buildEntityIndividual(it){
+
+	// 	def entityindividual = [
+	// 		objid  		: it.ObjId.toString(),		
+	// 		lastname 	: it.PersonName.LastName,
+	// 		firstname 	: it.PersonName.FirstName,
+	// 		middlename 	: it.PersonName.MiddleName,
+	// 		birthdate 	: null,
+	// 		birthplace 	: null,
+	// 		citizenship : null,
+	// 		gender 		: null,
+	// 		civilstatus : null,
+	// 		profession 	: null,
+	// 		tin 		: null,
+	// 		sss 		: null,
+	// 		height 		: null,
+	// 		weight 		: null,
+	// 		acr 		: null,
+	// 		religion 	: null,
+	// 		photo 		: null,
+	// 		thumbnail 	: null,
+	// 	]
+
+	// 	emind.create(entityindividual)
+
+	// }
+
+	// @ProxyMethod
+	// public def migrateLegArchiveOrdinanceEntity () {
+	// 	def ent = em.getEntity();
+	// 	ent.each{
+	// 		def entity = xem.getXEntity([objid:it.ObjId.toString()]);
+	// 		def n = [
+	// 			objid       : entity[0].objid.toString(),
+	// 			entity_objid: entity[0].objid.toString(),
+	// 		]
+	// 		ement.create(n)	
+	// 	}
+
+	// }
+
+
+	@ProxyMethod
+	public def getArchive () {
+		def o = emlegarchive.getArchive();
+		return o 
+	}
+
+}

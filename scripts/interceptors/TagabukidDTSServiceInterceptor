@@ -1,0 +1,21 @@
+import com.rameses.annotations.*
+import com.rameses.eserver.*;
+import com.rameses.common.*;
+
+class TagabukidDTSServiceInterceptor {
+
+    @Service("TagabukidBTACSRFEditInfoService")
+    def svc
+	
+	@After(pattern="TagabukidDTSService.create", eval="#{args[0].documenttype.code == 'RF'}")
+	public void createRFdocinfo(evt) { 
+	    svc.create(evt.args[0])
+	}
+
+	@After(pattern="TagabukidDTSService.open", eval="#{result.documenttype.code == 'RF'}")
+	public void loadRFdocinfo(evt) {
+		def doc = evt.result 
+		doc.docinfo = svc.open(doc.objid)
+	}
+	
+}
