@@ -1,6 +1,6 @@
 <schema>
 	
-	<element tablename="document_task">
+	<element name="subaydocumenttask" tablename="subay_document_task">
 		<field name="objid" primary="true"/>
 		<field name="refid" required="true"/>
 		<field name="parentprocessid" />
@@ -18,12 +18,12 @@
 		<field name="message"/>
 		<field name="signature"/>
 	</element>	
-	<element name="document_task_org" tablename="document_task_org">
+	<element name="subaydocumenttask" tablename="subay_document_task_org">
 		<field name="taskid" primary="true"/>
-		<field name="orgid" required="true"/>
+		<field name="org_objid" required="true"/>
 		<field name="macaddress" required="true"/>
-		<field name="name" />
-		<field name="code" />
-		<field name="address" />
+		<field name="org_name" />
+		<field name="org_code" />
+		<field name="org_address" />
 	</element>	
 </schema>

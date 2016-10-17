@@ -3,7 +3,7 @@ import com.rameses.util.*;
 import java.rmi.server.*;
 import com.rameses.services.extended.*;
 
-public class TagabukidDTSService  {
+public class TagabukidSubayTransactionService  {
 
 	@Service('DateService')
 	def dtSvc 
@@ -41,224 +41,6 @@ public class TagabukidDTSService  {
 	@Env
 	def env;
 
-
-	@ProxyMethod
-	public def initNew(o) {
-		def entity= [:]
-		entity.objid ="DTS"+ new UID();
-		entity.dininventoryid = null;
-		entity.documenttype = [:]
-		entity.recordlog = [:]
-		entity.state = 'IDLE'
-		entity.docstate = 'IDLE'
-		entity.child = []
-		entity.docinfo = [:]
-		entity.recordlog.datecreated = dtSvc.serverDate
-		entity.recordlog.createdbyuserid = env.USERID
-		entity.recordlog.createdbyuser = env.FULLNAME
-		entity.recordlog.dateoflastupdate =  dtSvc.serverDate
-		entity.recordlog.lastupdatedbyuserid = env.USERID
-		entity.recordlog.lastupdatedbyuser = env.FULLNAME
-		return entity
-	}
-
-    @ProxyMethod
-    public def create(def o){
-		if(!o.docstate) o.docstate = 'IDLE';
-
-		if(!o.din) {o.din = createdin(o)}
-		
-		o.documenttypeid =  o.documenttype.objid
-		em.create(o);
-		def task = inittask(o);
-		if(o.documenttype.haschild){
-			o.child.each{
-				
-				
-				def taskid = createchildlog(o,it)
-				def doclink = [
-					objid:o.objid,
-					documentchildid :it.objid,
-					taskid: taskid
-				]
-				em.create(doclink, 'documentlink')
-				// em.updateparent([parentid:o.objid,objid:it.objid])
-				// if(it.linked){
-				// 	taskem.attachChildTask([parentprocessid:task.objid,enddate:dtSvc.serverDate,refid:it.objid,state:'processing',message:'Linked to document no. ' + o.din]);
-				// }else{
-				// 	taskem.attachChildTask([parentprocessid:task.objid,enddate:dtSvc.serverDate,refid:it.objid,state:'attached',message:'Attached to document no. ' + o.din]);
-				// }
-				
-			}
-		}
-
-		return o;
-    }
-
-    public def createchildlog(doc,o){
-    		if (o.state != 'attached'){
-    			closechildtask(o)
-    		}
-    		addChildattached(o)
-			o.newlft = o.lft + 1
-			o.newrgt = o.lft + 2
-			if (o.linked){
-				o.state = 'linked'
-				o.startdate = dtSvc.serverDate
-				o.enddate = null
-				o.message = 'Linked to document no. ' + doc.din
-			}else{
-				o.state = 'attached'
-				o.startdate = dtSvc.serverDate
-				o.enddate = dtSvc.serverDate
-				o.message = 'Attached to document no. ' + doc.din
-			}
-
-			return createchildtask(o)
-    }
-
-    void addChildattached(o){
-    	taskem.changeRight([myleft:o.lft,refid:o.objid])
-		taskem.changeLeft([myleft:o.lft,refid:o.objid])
-    }
-
-    void closechildtask(o){
-    	def filter = ''' AND dto.orgid = $P{userorgid} AND dt.objid = $P{taskid} '''
-    	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:o.refid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:o.taskid]);
-    }
-
-    public def createchildtask(o){
-    	def org = getUserOrg(env.USERID)
- 		
-    	def newtask = [
-			objid          : 'TSK' + new java.rmi.server.UID(),
-			refid          : o.refid,
-			parentprocessid: null,
-			lft			   : o.newlft,
-			rgt			   : o.newrgt,
-			state          : o.state,
-			startdate      : o.startdate,
-			enddate		   : o.enddate,
-			assignee_objid : env.USERID,
-			assignee_name  : env.FULLNAME,
-			assignee_title : env.JOBTITLE,
-			actor_objid    : env.USERID,
-			actor_name     : env.FULLNAME,
-			actor_title    : env.JOBTITLE,
-			message        : o.message,
-		]
-
-		
-		
-		def newtaskorg = [
-			taskid:newtask.objid,
-			orgid:org.organizationid,
-			macaddress:env.MACADDRESS,
-			name:org.orgname,
-			code:org.orgcode,
-			address:org.address,
-		]
-
-
-    	taskem.save(newtask)
-    	taskem.save(newtaskorg,'document_task_org')
-    	return newtask.objid
-    	
-    }
-
-	public def createdin(def o) {
-		def appcode = "DTS"
-		def yr = dtSvc.serverYear;
-		def mnth = dtSvc.serverMonth;
-		def smon = ( mnth < 10 ) ? "0"+mnth : mnth+"";
-		def prefix = appcode+yr+smon;
-		return prefix+seqSvc.getNextFormattedSeries(prefix);
-	}
-
-	@ProxyMethod
-	public def verifydin(din) {
-		try{
-			def prefix = (din.substring(0,5)=="71007" ? din.substring(6,15) : din.substring(0,9)) 
-			def sequence = (din.substring(0,5)=="71007" ? din.substring(15) : din.substring(9)) 
-
-			din = prefix + sequence
-
-			def filter = ''' d.din = $P{barcodeid} ''';
-			def doc = em.findDocumentbyBarcode([barcodeid:din,filter:filter])
-			if (doc){
-				throw new Exception("DIN :" + din + " is already referenced to a document");
-			}
-			
-			def inv = em.findDocumentInv([prefix:prefix,sequence:sequence,orgid:getUserOrg(env.USERID).organizationid])
-			if(!inv){
-				throw new Exception("Invalid DIN");
-			}
-
-
-			return [din:din,inv:inv]
-		}catch(e){
-			throw new Exception("Invalid DIN");
-		}
-	}
-
-	// @ProxyMethod
-	// public def verifyreconciliationdin(din) {
-	// 	try{
-	// 		def prefix = (din.substring(0,5)=="71007" ? din.substring(6,15) : din.substring(0,9)) 
-	// 		def sequence = (din.substring(0,5)=="71007" ? din.substring(15) : din.substring(9)) 
-
-	// 		din = prefix + sequence
-
-	// 		def filter = ''' d.din = $P{barcodeid} ''';
-	// 		def doc = em.findDocumentbyBarcode([barcodeid:din,filter:filter])
-	// 		if (doc){
-	// 			throw new Exception("DIN :" + din + " is already referenced to a document");
-	// 		}
-			
-	// 		def inv = em.findDocumentInv([prefix:prefix,sequence:sequence,orgid:getUserOrg(env.USERID).organizationid])
-	// 		if(!inv){
-	// 			throw new Exception("Invalid DIN");
-	// 		}
-
-
-	// 		return [din:din,inv:inv]
-	// 	}catch(e){
-	// 		throw new Exception("Invalid DIN");
-	// 	}
-	// }
-
-
-	public def inittask(o){
-		def inittask = [
-			objid          : 'TSK' + new java.rmi.server.UID(),
-			refid          : o.objid,
-			parentprocessid: null,
-			lft			   : 1,
-			rgt			   : 2,
-			state          : 'idle',
-			startdate      : dtSvc.serverDate,
-			assignee_objid : env.USERID,
-			assignee_name  : env.FULLNAME,
-			assignee_title : env.JOBTITLE,
-			actor_objid    : env.USERID,
-			actor_name     : env.FULLNAME,
-			actor_title    : env.JOBTITLE,
-			message        : 'DOCUMENT WITH DIN ' + o.din + ' WAS INITIALIZED BY ' + env.FULLNAME,
-		]
-		taskem.save(inittask)
-		def org = getUserOrg(env.USERID)
-		def newtaskorg = [
-			taskid:inittask.objid,
-			orgid:org.organizationid,
-			macaddress:env.MACADDRESS,
-			name:org.orgname,
-			code:org.orgcode,
-			address:org.address,
-		]
-		taskem.save(newtaskorg,'document_task_org')
-		return inittask
-	}
-
 	@ProxyMethod
     public def lookupDIN(params){
    		def docs = []
@@ -266,7 +48,7 @@ public class TagabukidDTSService  {
     	beforeList(params)
     	params.filter = ''
     	params.actorobjid = env.USERID
-    	params.userorgid = getUserOrg(env.USERID).organizationid
+    	params.userorgid = getUserOrg(env.USERID).org.objid
     	params.seleteddocs = ''
     	params.document.each{
     		docs.push(it.objid)
@@ -332,18 +114,8 @@ public class TagabukidDTSService  {
 	@ProxyMethod
     public void processDocument(entity){
     	entity.document.each{doc->
-    		def redflags = redflagSvc.getOpenIssues( [refid: doc.objid, blockaction:entity.mode]);
-			if( redflags ) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("There are unresolved issues: \n")
-				redflags.each {
-					sb.append( it.caseno +':'+it.message + ". filed by " + it.filedby.name + "\n");
-				}
-				def w =  new Warning("redflag");
-				w.info.list = redflags;
-				throw w;
-			}
-			// println entity
+    		getRedFlagIssues(doc,entity);
+    		// get current task
 			entity.prevtask = getprevtask(doc)
 			if (!entity.prevtask){
 				throw new Exception("Data may have changed. Please close the window and try again.");
@@ -879,26 +651,41 @@ public class TagabukidDTSService  {
     	
     }
 
-    @ProxyMethod
-    public def doncarlosafinventorydetail(doc){
-
-    	def items = emain.getaftemp()
-    	items.each{ i ->
-    		println i.controlid + " -> START"
-    		def details = emain.getdetails([controlid:i.controlid])
-    		def x = 0
-    		details.each{
-    			x = x + 1
-    			it.lineno = i.lineno + x
-    			it.objid = 'PICTD' + new java.rmi.server.UID()
-    			eminv.create(it,'detail')
-
-    		}
-    		println i.controlid + " -> DONE"
-    	}
-
-    	return "done"
+    void getRedFlagIssues(doc,entity){
+    	def redflags = redflagSvc.getOpenIssues( [refid: doc.objid, blockaction:entity.mode]);
+		if( redflags ) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("There are unresolved issues: \n")
+			redflags.each {
+				sb.append( it.caseno +':'+it.message + ". filed by " + it.filedby.name + "\n");
+			}
+			def w =  new Warning("redflag");
+			w.info.list = redflags;
+			throw w;
+		}
     }
+    // @ProxyMethod
+    // public def doncarlosafinventorydetail(doc){
+
+    // 	def items = emain.getaftemp()
+    // 	items.each{ i ->
+    // 		println i.controlid + " -> START"
+    // 		def details = emain.getdetails([controlid:i.controlid])
+    // 		def x = 0
+    // 		details.each{
+    // 			x = x + 1
+    // 			it.lineno = i.lineno + x
+    // 			it.objid = 'PICTD' + new java.rmi.server.UID()
+    // 			eminv.create(it,'detail')
+
+    // 		}
+    // 		println i.controlid + " -> DONE"
+    // 	}
+
+    // 	return "done"
+    // }
+
+
 
 
 }

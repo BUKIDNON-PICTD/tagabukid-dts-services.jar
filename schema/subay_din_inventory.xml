@@ -1,5 +1,5 @@
 <schema>
-	<element name="dininventory" tablename="din_inventory">
+	<element name="subaydininventory" tablename="subay_din_inventory">
 		<field name="objid" primary="true"/>
 		<field name="prefix" primary="true"/>
 		<field name="startseries" required="true"/>

@@ -1,0 +1,13 @@
+<schema>
+	<element name="subayuserorg" tablename="subay_user_organization">
+		<field name="objid" primary="true"/>
+		<field name="org_objid" required="true"/>
+		<field name="macaddress" />
+		<field name="org_name" />
+		<field name="org_code" />
+		<field name="org_address" />
+	</element>
+</schema>
+
+
+	

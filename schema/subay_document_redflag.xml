@@ -1,6 +1,6 @@
 <schema>
 	
-	<element tablename="document_redflag">
+	<element name="subaydocumentredflag" tablename="subay_document_redflag">
 		<field name="objid" primary="true"/>
 		<field name="caseno" required="true"/>
 		<field name="refid" required="true"/>

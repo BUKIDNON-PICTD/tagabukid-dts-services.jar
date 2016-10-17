@@ -1,11 +1,11 @@
 <schema>
-	<element name="document" tablename="document">
+	<element name="subaydocument" tablename="subay_document">
 		<field name="objid" primary="true"/>
 		<field name="docstate" required="true"/>
 		<field name="din" required="true"/>
 		<field name="dininventoryid" required="true"/>
 		<field name="parentid" />
-		<field name="documenttypeid" required="true"/>
+		<field name="documenttype_objid" required="true"/>
 		<field name="title" required="true"/>
 		<field name="description" />
 		<field name="tags" />
@@ -18,7 +18,7 @@
 		<field name="recordlog_lastupdatedbyuser" required="true"/>
 	</element>
 
-	<element name="documentlink" tablename="document_link">
+	<element name="subaydocumentlink" tablename="subay_document_link">
 		<field name="objid" primary="true"/>
 		<field name="documentchildid" primary="true"/>
 		<field name="taskid" required="true"/>
