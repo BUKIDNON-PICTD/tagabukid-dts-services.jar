@@ -14,16 +14,16 @@ public class TagabukidSubayTransactionService  {
 	@ActiveDB("dts")
 	def emain
 
-	@ActiveDB(value='dts', em='tagabukid_etracs')
+	@ActiveDB(value='dts', em='tagabukid_subay')
 	def em
 
-	@ActiveDB(value='userorg', em='tagabukid_etracs')
+	@ActiveDB(value='subayuserorg', em='tagabukid_subay')
 	def emuserorg
 
-	@ActiveDB(value='document_task', em='tagabukid_etracs')
+	@ActiveDB(value='document_task', em='tagabukid_subay')
 	def taskem
 
-	@ActiveDB(value='documenttype', em='tagabukid_etracs')
+	@ActiveDB(value='documenttype', em='tagabukid_subay')
 	def emdoctype
 
 	@ActiveDB(value='document_redflag', em='notification') 

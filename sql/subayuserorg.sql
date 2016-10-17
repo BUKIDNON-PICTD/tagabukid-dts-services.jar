@@ -1,6 +1,6 @@
 [getList]
 SELECT * 
-FROM user_organization
+FROM subay_user_organization
 WHERE 
 ${filter} 
 
@@ -15,16 +15,16 @@ OR middlename LIKE $P{searchtext})
 ORDER BY lastname
 
 [getOrgById]
-SELECT * FROM "references"."tblOrganizationUnit"
-WHERE "OrgUnitId" = ${orgid} 
+SELECT * FROM subay_org_unit
+WHERE OrgUnitId = ${orgid} 
 
 [findById]
-SELECT * FROM user_organization WHERE objid = $P{objid}
+SELECT * FROM subay_user_organization WHERE objid = $P{objid}
 
 [approve]
-UPDATE user_organization SET state = 'APPROVED' WHERE objid = $P{objid}
+UPDATE subay_user_organization SET state = 'APPROVED' WHERE objid = $P{objid}
 
 [getUserByOrg]
 SELECT * 
-FROM user_organization
+FROM subay_user_organization
 WHERE organizationid = $P{orgid}

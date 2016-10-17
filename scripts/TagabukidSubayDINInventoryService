@@ -4,22 +4,22 @@ import com.rameses.services.extended.*;
 import java.text.DecimalFormat;
 
 
-class TagabukidDINInventoryService extends ActiveCrudListService
+class TagabukidSubayDINInventoryService extends ActiveCrudListService
 {
 
-	@ActiveDB(value='dininventory', em='tagabukid_etracs')
+	@ActiveDB(value='subaydininventory', em='tagabukid_subay')
 	def em
 
-	@ActiveDB(value='dininventory', em='system')
+	@ActiveDB(value='subaydininventory', em='system')
 	def emmain
 
-	@ActiveDB(value='userorg', em='tagabukid_etracs')
+	@ActiveDB(value='subayuserorg', em='tagabukid_subay')
 	def emuserorg
 
 	@ActiveDB(value='sequence', em='system')
 	def emsq;
 
-	@ActiveDB(value='userorg', em='postgrereferences')
+	@ActiveDB(value='subayuserorg', em='tagabukid_subay')
 	def empostref
 	
 	@Env
@@ -28,7 +28,7 @@ class TagabukidDINInventoryService extends ActiveCrudListService
 	@Service("SequenceService")
 	def seqSvc;
 
-	@Service("TagabukidDTSService")
+	@Service("TagabukidSubayTransactionService")
 	def dtsSvc;
 
 	@Service('DateService')
@@ -48,7 +48,6 @@ class TagabukidDINInventoryService extends ActiveCrudListService
 	// 	o.orgname = org.Entity[0].Name
 	// 	o.orgcode = org.Entity[0].AcronymAbbreviation
 	// 	o.name = entity[0].name
-
 	// }
 
 	@ProxyMethod
@@ -105,7 +104,7 @@ class TagabukidDINInventoryService extends ActiveCrudListService
 		def mnth = dtSvc.serverMonth;
 		def smon = ( mnth < 10 ) ? "0"+mnth : mnth+"";
 		def prefix = appcode+yr+smon;
-		def seq = emsq.findCurrentSeries([ objid: prefix ]);
+		def seq = emmain.findCurrentSeries([ objid: prefix ]);
 		if ( ! seq ) {
 			seq = seqSvc.create( prefix );
 			// seq = [

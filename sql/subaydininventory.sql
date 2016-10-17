@@ -1,13 +1,13 @@
 [getList]
 SELECT * 
-FROM din_inventory
+FROM subay_din_inventory
 ORDER BY recordlog_datecreated
 
 [findById]
-SELECT * FROM din_inventory WHERE objid = $P{objid}
+SELECT * FROM subay_din_inventory WHERE objid = $P{objid}
 
 [approve]
-UPDATE din_inventory SET state = 'APPROVED' WHERE objid = $P{objid}
+UPDATE subay_din_inventory SET state = 'APPROVED' WHERE objid = $P{objid}
 
 [findCurrentSeries]
 SELECT nextSeries AS currentSeries FROM sys_sequence WHERE objid = $P{objid} 
