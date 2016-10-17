@@ -51,11 +51,11 @@ SELECT * FROM sys_user
 WHERE name LIKE $P{searchtext} 
 ORDER BY lastname
 
-[getHrisOrg]
-SELECT * FROM "references"."tblOrganizationUnit"
-WHERE UPPER("Entity_Name") LIKE $P{searchtext} 
-OR UPPER("Entity_AcronymAbbreviation") LIKE $P{searchtext} 
-ORDER BY "Entity_Name"
+[getOrgUnit]
+SELECT * FROM subay_org_unit
+WHERE UPPER(Entity_Name) LIKE $P{searchtext} 
+OR UPPER(Entity_AcronymAbbreviation) LIKE $P{searchtext} 
+ORDER BY Entity_Name
 
 [getUserOrg]
 SELECT organizationid,orgname,orgcode FROM user_organization

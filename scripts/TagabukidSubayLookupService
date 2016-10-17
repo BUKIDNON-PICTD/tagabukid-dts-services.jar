@@ -3,10 +3,10 @@ import com.rameses.common.*
 import com.rameses.eserver.*;
 import java.rmi.server.UID;
 
-public class TagabukidDTSLookupService
+public class TagabukidSubayLookupService
 {
 
-	@Service('TagabukidLookupUtilService')
+	@Service('TagabukidSubayLookupUtilService')
 	def util 
 
 	// @ProxyMethod
@@ -16,12 +16,12 @@ public class TagabukidDTSLookupService
 
 	@ProxyMethod
 	public def lookupEtracsUser( params ) {
-		return util.lookupMain( 'dts:getEtracsUser', params,'objid' )
+		return util.lookupMain( 'subaydocument:getEtracsUser', params,'objid' )
 	}
 
 	@ProxyMethod
-	public def lookupHrisOrg( params ) {
-		return util.lookupHrisOrg( 'dts:getHrisOrg', params,'OrgUnitId' )
+	public def lookupOrgUnit( params ) {
+		return util.lookup( 'subaydocument:getOrgUnit', params,'OrgUnitId' )
 	}
 
 	@ProxyMethod

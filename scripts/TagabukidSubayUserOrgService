@@ -1,0 +1,122 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+
+class TagabukidUserOrgService extends ActiveCrudListService
+{
+
+	@ActiveDB(value='subayuserorg', em='tagabukid_subay')
+	def em
+
+	@ActiveDB("subayuserorg")
+	def emmain
+
+	@ActiveDB(value='subayuserorg', em='postgrereferences')
+	def empostref
+	
+	@Env
+	def env;
+
+	@Service('DateService')
+	def dtSvc 
+
+	void beforeList(params){
+		if (params == null) params = [:]
+		params.searchtext = (params.searchtext ? params.searchtext :'')+'%'
+	}
+
+	public void afterOpen(o){
+		def params = [:]
+		params.searchtext = '%'
+		params.filter = "AND objid = '" + o.objid + "'";
+		def entity = emmain.getEtracsUser(params)
+		// def org = em.getOrgById([orgid:o.org.objid])
+		// o.orgname = org.Entity[0].Name
+		// o.orgcode = org.Entity[0].AcronymAbbreviation
+		o.name = entity[0].name
+
+	}
+
+	@ProxyMethod
+	public def getColumns( params ) {
+		return [
+			[name:"username", caption:"Username", width:40],
+            [name:"name", caption:"Name", width:250],
+            [name:"org.name", caption:"Organization", width:100],
+            [name:"org.code", caption:"Organization Code", width:100],
+            [name:"macaddress", caption:"MAC Address", width:100],
+		]	
+	}
+
+	
+	@ProxyMethod
+	public def getList( params ) {
+		beforeList(params)
+		def entity = emmain.getEtracsUser([searchtext: params.searchtext])
+		if(entity){
+			params.filter = "objid IN ('" + entity.objid.join("','") + "')";
+			def userorg = em.getList(params)
+			// entity.each{ y ->
+			// 	try{
+			// 		def orgid = userorg.find{ it.objid == y.objid }.organizationid
+			// 		if(orgid){
+			// 			def org = empostref.getOrgById([orgid:"'"+orgid+"'"])
+			// 			y.organizationid = userorg.find{ it.objid == y.objid }.organizationid
+			// 			y.orgname = org.Entity[0].Name
+			// 			y.orgcode = org.Entity[0].AcronymAbbreviation
+			// 			y.macaddress = userorg.find{ it.objid == y.objid }.macaddress
+			// 		}
+			// 	}catch(e){
+			// 		//donothing
+			// 	}
+				
+
+			// }
+			if(userorg){
+				userorg.each{ y ->
+					def user = entity.find{it.objid == y.objid};
+					y.username = user.username;
+					y.name = user.name;
+				}
+			}
+
+			return userorg;
+		}
+		return []
+		
+	} 
+
+
+	@ProxyMethod
+	public def findById( objid ) {
+		return em.findById([objid:objid])
+	}
+
+
+	@Async
+	@ProxyMethod
+	public def exportData(params) {
+		return [
+			filetype: 'ordinanceentity',
+			ordinancecategories: getLists([:])
+		] 
+	}
+
+	@Async
+	@ProxyMethod
+	public def importData( data ) {
+		if (data.filetype != 'ordinanceentity')
+			throw new Exception('Invalid data.')
+		data.ordinanceentity.each{
+			save(it)
+		}
+	}
+	
+	void beforeUpdate(o){
+		println o
+	}
+
+	void beforeCreate(o){
+		o.address = "LOCAL"
+	}
+}
