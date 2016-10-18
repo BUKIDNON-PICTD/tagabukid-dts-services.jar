@@ -14,6 +14,9 @@ public class TagabukidSubayDocumentService  {
 	@Service('DateService')
 	def dtSvc 
 
+	@Service('TagabukidSubayTransactionService')
+	def dtsSvc 
+
 	@Env
 	def env;
 
@@ -45,7 +48,7 @@ public class TagabukidSubayDocumentService  {
 
 		// if(!o.din) {o.din = createdin(o)}
 		// o.documenttypeid =  o.documenttype.objid
-		o.org = getUserOrg(env.USERID)
+		o.org = dtsSvc.getUserOrg(env.USERID).org
 		em.create(o);
 		createinittask(o);
 
@@ -59,7 +62,7 @@ public class TagabukidSubayDocumentService  {
 					documentchildid :it.objid,
 					taskid: taskid
 				]
-				em.create(doclink, 'documentlink')
+				em.create(doclink, 'subaydocumentlink')
 				// em.updateparent([parentid:o.objid,objid:it.objid])
 				// if(it.linked){
 				// 	taskem.attachChildTask([parentprocessid:task.objid,enddate:dtSvc.serverDate,refid:it.objid,state:'processing',message:'Linked to document no. ' + o.din]);
@@ -98,7 +101,7 @@ public class TagabukidSubayDocumentService  {
 		]
 
 		taskem.save(inittask)
-		taskem.save(newtaskorg,'document_task_org')
+		taskem.save(newtaskorg,'subaydocumenttaskorg')
 
 		return inittask
 	}
@@ -112,12 +115,11 @@ public class TagabukidSubayDocumentService  {
 
 			def filter = ''' d.din = $P{barcodeid} ''';
 			def doc = em.findDocumentbyBarcode([barcodeid:din,filter:filter])
-			println doc
 			if (doc){
 				throw new Exception("DIN :" + din + " is already referenced to a document");
 			}
 			
-			def inv = em.findDocumentInv([prefix:prefix,sequence:sequence,orgid:getUserOrg(env.USERID).organizationid])
+			def inv = em.findDocumentInv([prefix:prefix,sequence:sequence,orgid:dtsSvc.getUserOrg(env.USERID).org.objid])
 			if(!inv){
 				throw new Exception("Invalid DIN");
 			}
@@ -173,7 +175,7 @@ public class TagabukidSubayDocumentService  {
 			]
 
 	    	taskem.save(newtask)
-	    	taskem.save(newtaskorg,'document_task_org')
+	    	taskem.save(newtaskorg,'subaydocumenttaskorg')
 	    	return newtask.objid
     }
 
@@ -184,6 +186,6 @@ public class TagabukidSubayDocumentService  {
 
     void closechildtask(o){
     	def filter = ''' AND dto.orgid = $P{userorgid} AND dt.objid = $P{taskid} '''
-    	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:o.refid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:o.taskid]);
+    	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:o.refid,filter:filter,userorgid:dtsSvc.getUserOrg(env.USERID).org.objid,taskid:o.taskid]);
     }
 }

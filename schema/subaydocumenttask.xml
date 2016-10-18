@@ -18,12 +18,12 @@
 		<field name="message"/>
 		<field name="signature"/>
 	</element>	
-	<element name="subaydocumenttask" tablename="subay_document_task_org">
+	<element name="subaydocumenttaskorg" tablename="subay_document_task_org">
 		<field name="taskid" primary="true"/>
 		<field name="org_objid" required="true"/>
 		<field name="macaddress" required="true"/>
-		<field name="org_name" />
-		<field name="org_code" />
+		<field name="org_name" required="true"/>
+		<field name="org_code" required="true"/>
 		<field name="org_address" />
 	</element>	
 </schema>
