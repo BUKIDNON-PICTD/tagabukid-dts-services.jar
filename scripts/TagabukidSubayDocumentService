@@ -105,14 +105,14 @@ public class TagabukidSubayDocumentService  {
 
 	@ProxyMethod
 	public def verifydin(din) {
-		try{
+		// try{
 			def prefix = (din.substring(0,5)=="71007" ? din.substring(6,15) : din.substring(0,9)) 
 			def sequence = (din.substring(0,5)=="71007" ? din.substring(15) : din.substring(9)) 
-
 			din = prefix + sequence
 
 			def filter = ''' d.din = $P{barcodeid} ''';
 			def doc = em.findDocumentbyBarcode([barcodeid:din,filter:filter])
+			println doc
 			if (doc){
 				throw new Exception("DIN :" + din + " is already referenced to a document");
 			}
@@ -124,9 +124,9 @@ public class TagabukidSubayDocumentService  {
 
 
 			return [din:din,inv:inv]
-		}catch(e){
-			throw new Exception("Invalid DIN");
-		}
+		// }catch(e){
+		// 	throw new Exception("Invalid DIN");
+		// }
 	}
 
 	public def createchildlog(doc,o){

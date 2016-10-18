@@ -39,10 +39,10 @@ dto.orgid,
 dto.macaddress,
 dto.name,
 dto.address
-FROM document d
-INNER JOIN document_task dt ON dt.`refid` = d.`objid`
-INNER JOIN document_task_org dto ON dto.`taskid` = dt.`objid`
-LEFT JOIN document_link dl ON dl.`taskid` = dt.`objid`
+FROM subay_document d
+INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
+INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
+LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
 ORDER BY d.title
 
@@ -58,10 +58,10 @@ OR UPPER(Entity_AcronymAbbreviation) LIKE $P{searchtext}
 ORDER BY Entity_Name
 
 [getUserOrg]
-SELECT organizationid,orgname,orgcode FROM user_organization
-WHERE orgname LIKE $P{searchtext} 
-OR orgcode LIKE $P{searchtext} 
-GROUP BY organizationid ORDER BY orgname
+SELECT org_objid,org_name,org_code FROM subay_user_organization
+WHERE org_name LIKE $P{searchtext} 
+OR org_code LIKE $P{searchtext} 
+GROUP BY org_objid ORDER BY org_name
 
 [getList]
 SELECT d.objid,
@@ -79,9 +79,9 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
-ug.organizationid,
-ug.orgname,
-ug.orgcode,
+ug.org_objid,
+ug.org_name,
+ug.org_code,
 dt.objid AS taskid,
 dt.refid,
 dt.parentprocessid,
@@ -106,14 +106,14 @@ dtyp.code AS documenttype_code,
 dtyp.name AS documenttype_name,
 dtyp.description AS documenttype_description,
 dtyp.haschild AS documenttype_haschild,
-ug2.organizationid AS senderorg
-FROM document d
-INNER JOIN user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
-INNER JOIN document_task dt ON dt.`refid` = d.`objid`
-INNER JOIN document_task_org dto ON dto.`taskid` = dt.`objid`
-INNER JOIN document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
-INNER JOIN user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
-LEFT JOIN document_link dl ON dl.`taskid` = dt.`objid`
+ug2.org_objid AS senderorg
+FROM subay_document d
+INNER JOIN subay_user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
+INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
+INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
+INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
+INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
+LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE 1=1
 ${filter}
 ORDER BY dt.startdate
@@ -134,9 +134,9 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
-ug.organizationid AS originorgid,
-ug.orgname AS originorgname,
-ug.orgcode AS originorgcode,
+ug.org_objid AS originorgid,
+ug.org_name AS originorgname,
+ug.org_code AS originorgcode,
 dt.objid AS taskid,
 dt.refid,
 dt.parentprocessid,
@@ -161,14 +161,14 @@ dtyp.code AS documenttype_code,
 dtyp.name AS documenttype_name,
 dtyp.description AS documenttype_description,
 dtyp.haschild AS documenttype_haschild,
-ug2.organizationid AS senderorg
-FROM document d
-INNER JOIN user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
-INNER JOIN document_task dt ON dt.`refid` = d.`objid`
-INNER JOIN document_task_org dto ON dto.`taskid` = dt.`objid`
-INNER JOIN document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
-INNER JOIN user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
-LEFT JOIN document_link dl ON dl.`taskid` = dt.`objid`
+ug2.org_objid AS senderorg
+FROM subay_document d
+INNER JOIN subay_user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
+INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
+INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
+INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
+INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
+LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
 AND (dt.enddate IS NULL OR dt.state IN ('archived','attached','linked'))
 ORDER BY d.title
@@ -189,9 +189,9 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
-ug.organizationid AS originorgid,
-ug.orgname AS originorgname,
-ug.orgcode AS originorgcode,
+ug.org_objid AS originorgid,
+ug.org_name AS originorgname,
+ug.org_code AS originorgcode,
 dt.objid AS taskid,
 dt.refid,
 dt.parentprocessid,
@@ -216,12 +216,12 @@ dtyp.code AS documenttype_code,
 dtyp.name AS documenttype_name,
 dtyp.description AS documenttype_description,
 dtyp.haschild AS documenttype_haschild
-FROM document d
-INNER JOIN user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
-INNER JOIN document_task dt ON dt.`refid` = d.`objid`
-INNER JOIN document_task_org dto ON dto.`taskid` = dt.`objid`
-INNER JOIN document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
-LEFT JOIN document_link dl ON dl.`taskid` = dt.`objid`
+FROM subay_document d
+INNER JOIN subay_user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
+INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
+INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
+INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
+LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
 AND (dt.enddate IS NULL OR dt.state IN ('archived','attached','linked'))
 ORDER BY d.title, dt.startdate
@@ -242,9 +242,9 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
-ug.organizationid AS originorgid,
-ug.orgname AS originorgname,
-ug.orgcode AS originorgcode,
+ug.org_objid AS originorgid,
+ug.org_name AS originorgname,
+ug.org_code AS originorgcode,
 dt.objid AS taskid,
 dt.refid,
 dt.parentprocessid,
@@ -269,12 +269,12 @@ dtyp.code AS documenttype_code,
 dtyp.name AS documenttype_name,
 dtyp.description AS documenttype_description,
 dtyp.haschild AS documenttype_haschild
-FROM document d
-INNER JOIN user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
-INNER JOIN document_task dt ON dt.`refid` = d.`objid`
-INNER JOIN document_task_org dto ON dto.`taskid` = dt.`objid`
-INNER JOIN document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
-LEFT JOIN document_link dl ON dl.`taskid` = dt.`objid`
+FROM subay_document d
+INNER JOIN subay_user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
+INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
+INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
+INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
+LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
 AND dt.state IN ('archived','attached','linked')
 ORDER BY d.title, dt.startdate
@@ -299,11 +299,11 @@ SELECT COUNT(*) AS total,
        SUM(IF(dt.state = "archived",1,0)) AS archived,
        SUM(IF(dt.state = "attached",1,0)) AS attached
 	
-FROM document d
-INNER JOIN user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
-INNER JOIN document_task dt ON dt.`refid` = d.`objid`
-INNER JOIN document_task_org dto ON dto.`taskid` = dt.`objid`
-INNER JOIN document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
+FROM subay_document d
+INNER JOIN subay_user_organization ug ON ug.objid = d.`recordlog_createdbyuserid`
+INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
+INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
+INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttypeid`
 WHERE (dt.enddate IS NULL 
 OR dt.state IN ('attached','archived','closed')) 
 AND dto.orgid = $P{userorgid}

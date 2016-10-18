@@ -58,8 +58,8 @@ class TagabukidSubayDINInventoryService extends ActiveCrudListService
             [name:"startserialno", caption:"Start DIN", width:100],
             [name:"endserialno", caption:"End DIN", width:100],
             [name:"qty", caption:"Quantity", width:40],
-            [name:"orgname", caption:"Office/Organization", width:50],
-            [name:"orgcode", caption:"Code", width:50],
+            [name:"org.name", caption:"Office/Organization", width:50],
+            [name:"org.code", caption:"Code", width:50],
             [name:"expdate", caption:"Expiry Date", width:100],
 		]	
 	}
@@ -70,9 +70,10 @@ class TagabukidSubayDINInventoryService extends ActiveCrudListService
 		beforeList(params)
 		def inventory = em.getList(params)
 		inventory.each{
-			def org = empostref.getOrgById([orgid:"'"+it.orgid+"'"])
-			it.orgname = org.Entity[0].Name
-			it.orgcode = org.Entity[0].AcronymAbbreviation
+			def org = empostref.getOrgById([orgid:"'"+it.org.objid+"'"]);
+			it.org.objid = org.OrgUnitId;
+			it.org.name  = org.Entity[0].Name;
+			it.org.code  = org.Entity[0].AcronymAbbreviation;
 		}
 		return inventory
 		
@@ -85,7 +86,7 @@ class TagabukidSubayDINInventoryService extends ActiveCrudListService
 	public def getNextSequence(dincount) {
 		def o = getCurrentSeries()
 		def newsequence = [
-			startseries  :  o.currentsequence,
+			startseries  : o.currentsequence,
 			endseries    : o.currentsequence + (dincount - 1),
 			startserialno: null,
 			endserialno  : null,
@@ -179,43 +180,23 @@ class TagabukidSubayDINInventoryService extends ActiveCrudListService
 	}
 
 
-	@Async
-	@ProxyMethod
-	public def exportData(params) {
-		return [
-			filetype: 'ordinanceentity',
-			ordinancecategories: getLists([:])
-		] 
-	}
-
-	@Async
-	@ProxyMethod
-	public def importData( data ) {
-		if (data.filetype != 'ordinanceentity')
-			throw new Exception('Invalid data.')
-		data.ordinanceentity.each{
-			save(it)
-		}
-	}
-
 	void beforeCreate(o){
 		o.recordlog_datecreated         = dtSvc.serverDate
 		o.recordlog_createdbyuserid     = env.USERID
 		o.recordlog_createdbyuser       = env.FULLNAME
-		o.recordlog_dateoflastupdate    =  dtSvc.serverDate
+		o.recordlog_dateoflastupdate    = dtSvc.serverDate
 		o.recordlog_lastupdatedbyuserid = env.USERID
 		o.recordlog_lastupdatedbyuser   = env.FULLNAME
 		
 		def dinsequence                 = getNextSequence(o.qty)
 		o.startseries                   = dinsequence.startseries
-		o.endseries                     =   dinsequence.endseries
+		o.endseries                     = dinsequence.endseries
 		o.startserialno                 = dinsequence.startserialno
-		o.endserialno                   =   dinsequence.endserialno
+		o.endserialno                   = dinsequence.endserialno
 		
 		o.prefix                        = dinsequence.prefix
-		o.orgid                         = dtsSvc.getUserOrg(env.USERID).organizationid
+		o.org                           = dtsSvc.getUserOrg(env.USERID).org
 		o.expdate                       = dtSvc.serverDate + 1
-	
 	}
 
 
