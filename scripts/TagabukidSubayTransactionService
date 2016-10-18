@@ -14,19 +14,19 @@ public class TagabukidSubayTransactionService  {
 	@ActiveDB("dts")
 	def emain
 
-	@ActiveDB(value='dts', em='tagabukid_subay')
+	@ActiveDB(value='subaydocument', em='tagabukid_subay')
 	def em
 
 	@ActiveDB(value='subayuserorg', em='tagabukid_subay')
 	def emuserorg
 
-	@ActiveDB(value='document_task', em='tagabukid_subay')
+	@ActiveDB(value='subaydocumenttask', em='tagabukid_subay')
 	def taskem
 
-	@ActiveDB(value='documenttype', em='tagabukid_subay')
+	@ActiveDB(value='subaydocumenttype', em='tagabukid_subay')
 	def emdoctype
 
-	@ActiveDB(value='document_redflag', em='notification') 
+	@ActiveDB(value='subaydocumentredflag', em='notification') 
     def notifyem; 
 
 	@Service("TagabukidRedflagService")
@@ -44,7 +44,7 @@ public class TagabukidSubayTransactionService  {
 	@ProxyMethod
     public def lookupDIN(params){
    		def docs = []
-   
+   	
     	beforeList(params)
     	params.filter = ''
     	params.actorobjid = env.USERID
@@ -57,23 +57,23 @@ public class TagabukidSubayTransactionService  {
     	if (params.mode.matches('outgoing')){
     		params.filter = ''' (d.din LIKE $P{searchtext}
 							OR d.title LIKE $P{searchtext}
-							OR d.description LIKE $P{searchtext}) AND dt.state IN ('idle','processing','linked') AND dto.orgid = $P{userorgid} AND dt.enddate IS NULL 
+							OR d.description LIKE $P{searchtext}) AND dt.state IN ('idle','processing','linked') AND dto.org_objid = $P{userorgid} AND dt.enddate IS NULL 
 							'''
     	}
     	else if (params.mode.matches('send|archived')){
 	    	params.filter = ''' (d.din LIKE $P{searchtext}
 							OR d.title LIKE $P{searchtext}
-							OR d.description LIKE $P{searchtext}) AND dt.state IN ('idle','outgoing','processing','linked') AND dto.orgid = $P{userorgid} AND dt.enddate IS NULL 
+							OR d.description LIKE $P{searchtext}) AND dt.state IN ('idle','outgoing','processing','linked') AND dto.org_objid = $P{userorgid} AND dt.enddate IS NULL 
 							'''
 		}else if (params.mode =='receive'){
 	    	params.filter = ''' (d.din LIKE $P{searchtext}
 							OR d.title LIKE $P{searchtext}
-							OR d.description LIKE $P{searchtext}) AND dt.state IN ('enroute') AND dto.orgid = $P{userorgid} AND dt.enddate IS NULL
+							OR d.description LIKE $P{searchtext}) AND dt.state IN ('enroute') AND dto.org_objid = $P{userorgid} AND dt.enddate IS NULL
 							'''
 		}else if (params.mode =='child'){
 	    	params.filter = ''' (d.din LIKE $P{searchtext}
 							OR d.title LIKE $P{searchtext}
-							OR d.description LIKE $P{searchtext}) AND dto.orgid = $P{userorgid} AND ((dt.state IN ('processing','linked') AND dt.enddate IS NULL) OR (dt.state = 'attached'))
+							OR d.description LIKE $P{searchtext}) AND dto.org_objid = $P{userorgid} AND ((dt.state IN ('processing','linked') AND dt.enddate IS NULL) OR (dt.state = 'attached'))
 							'''
 		}else if (params.mode =='offline'){
 	    	params.filter = ''' (d.din LIKE $P{searchtext}
@@ -90,6 +90,7 @@ public class TagabukidSubayTransactionService  {
 		doc.each{
 			it.documenttype = emdoctype.findById([objid:it.documenttypeid])
 		}
+
 		return doc
 		
     }
@@ -144,12 +145,12 @@ public class TagabukidSubayTransactionService  {
     }
 
     void closeprevtask(o,doc){
-    	def filter = ''' AND dto.orgid = $P{userorgid} AND dt.objid = $P{taskid} '''
+    	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
     	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:doc.objid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:o.prevtask.taskid]);
     }
 
     public def getprevtask(doc){
-    	def filter = ''' AND dto.orgid = $P{userorgid} AND dt.objid = $P{taskid} '''
+    	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
     	return taskem.findPrevTask([refid:doc.objid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:doc.taskid]);
    	}
 
@@ -255,7 +256,7 @@ public class TagabukidSubayTransactionService  {
 
 
     	taskem.save(newtask)
-    	taskem.save(newtaskorg,'document_task_org')
+    	taskem.save(newtaskorg,'subaydocumenttaskorg')
 
 
     	if (o.mode == 'send' && o.sendtype.matches('local|multiplelocal')){
@@ -342,7 +343,7 @@ public class TagabukidSubayTransactionService  {
     	params.filter = ''
     	params.actorobjid = env.USERID
     	params.userorgid = getUserOrg(env.USERID)
-    	params.filter = ''' d.din LIKE $P{searchtext} AND dt.state IN ('processing') AND dto.orgid = $P{userorgid} AND dt.enddate IS NULL'''
+    	params.filter = ''' d.din LIKE $P{searchtext} AND dt.state IN ('processing') AND dto.org_objid = $P{userorgid} AND dt.enddate IS NULL'''
 		return em.getDocumentbyDIN(params)
     }
 
@@ -439,7 +440,7 @@ public class TagabukidSubayTransactionService  {
 
 
     	taskem.save(newtask)
-    	taskem.save(newtaskorg,'document_task_org')
+    	taskem.save(newtaskorg,'subaydocumenttaskorg')
 		
     	def notification = notifyem.getByObjid([objid: o.prevtask.objid])
 		notification.each{
@@ -501,7 +502,7 @@ public class TagabukidSubayTransactionService  {
 
 
     	taskem.save(newtask)
-    	taskem.save(newtaskorg,'document_task_org')
+    	taskem.save(newtaskorg,'subaydocumenttaskorg')
 		
     	
     }
@@ -596,7 +597,7 @@ public class TagabukidSubayTransactionService  {
 
 
     	taskem.save(newtask)
-    	taskem.save(newtaskorg,'document_task_org')
+    	taskem.save(newtaskorg,'subaydocumenttaskorg')
     }
 
 @ProxyMethod
