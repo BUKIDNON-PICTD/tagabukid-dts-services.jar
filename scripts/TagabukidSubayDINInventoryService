@@ -156,7 +156,7 @@ class TagabukidSubayDINInventoryService extends ActiveCrudListService
 			def din = [
 				din    : inv.prefix + "$sequence".padLeft(5, '0'),
 				barcode: "71007:" + inv.prefix + "$sequence".padLeft(5, '0'),
-				orgname: dtsSvc.getUserOrg(inv.recordlog.createdbyuserid).orgname
+				orgname: dtsSvc.getUserOrg(inv.recordlog.createdbyuserid).org.name
 			]
 			dins.push(din)
 		}
