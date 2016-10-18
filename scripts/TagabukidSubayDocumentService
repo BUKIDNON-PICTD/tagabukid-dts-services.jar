@@ -5,11 +5,17 @@ import com.rameses.services.extended.*;
 
 public class TagabukidSubayDocumentService  {
 
-	@ActiveDB(value='dts', em='tagabukid_etracs')
+	@ActiveDB(value='subaydocument', em='tagabukid_subay')
 	def em
 
-	@ActiveDB(value='document_task', em='tagabukid_etracs')
+	@ActiveDB(value='subaydocumenttask', em='tagabukid_subay')
 	def taskem
+
+	@Service('DateService')
+	def dtSvc 
+
+	@Env
+	def env;
 
 	//initialize new document
 	@ProxyMethod

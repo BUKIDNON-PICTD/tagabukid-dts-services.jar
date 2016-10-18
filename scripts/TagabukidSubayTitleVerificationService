@@ -2,9 +2,9 @@ import com.rameses.annotations.*;
 import com.rameses.services.extended.*;
 import com.rameses.util.JaroWinkler;
 
-class DocumentTitleVerificationService {
+class TagabukidSubayTitleVerificationService {
 
-	@ActiveDB(value='dts', em='tagabukid_etracs')
+	@ActiveDB(value='subaydocument', em='tagabukid_subay')
 	def em;
 
 	

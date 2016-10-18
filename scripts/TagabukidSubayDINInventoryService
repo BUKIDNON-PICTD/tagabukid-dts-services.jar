@@ -160,7 +160,6 @@ class TagabukidSubayDINInventoryService extends ActiveCrudListService
 			]
 			dins.push(din)
 		}
-
 		return dins
 
 	}
