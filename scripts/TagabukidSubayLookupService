@@ -26,7 +26,7 @@ public class TagabukidSubayLookupService
 
 	@ProxyMethod
 	public def lookupUserOrg( params ) {
-		return util.lookup( 'dts:getUserOrg', params,'orgid' )
+		return util.lookup( 'subaydocument:getUserOrg', params,'org_objid' )
 	}
 
 	@ProxyMethod

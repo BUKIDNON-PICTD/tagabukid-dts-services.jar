@@ -1,3 +1,8 @@
+[closeTaskById]
+UPDATE subay_document_task dt
+SET dt.enddate = $P{enddate}
+WHERE dt.objid = $P{taskid}
+
 [closePrevTask]
 UPDATE subay_document_task dt
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`

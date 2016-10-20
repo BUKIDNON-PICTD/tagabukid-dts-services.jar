@@ -87,9 +87,9 @@ public class TagabukidSubayTransactionService  {
 			params.filter = params.filter + "AND d.objid NOT IN ('" + docs.join("','")+ "')"
 		}
 		def doc = em.getDocumentbyDIN(params)
-		doc.each{
-			it.documenttype = emdoctype.findById([objid:it.documenttypeid])
-		}
+		// doc.each{
+		// 	it.documenttype = emdoctype.findById([objid:it.documenttypeid])
+		// }
 
 		return doc
 		
@@ -115,124 +115,101 @@ public class TagabukidSubayTransactionService  {
 	@ProxyMethod
     public void processDocument(entity){
     	entity.document.each{doc->
-    		getRedFlagIssues(doc,entity);
-    		// get current task
-			entity.prevtask = getprevtask(doc)
-			if (!entity.prevtask){
+    		
+    		checkRedFlagIssues(doc,entity);
+
+			if (entity.enddate){
 				throw new Exception("Data may have changed. Please close the window and try again.");
 			}
-			// println entity.prevtask
-    		closeprevtask(entity,doc)
-    		if(entity.destinations){
-    			def count = 0;
+			
+    		closetaskbyid(doc)
+
+    		if(entity.destinations){ //if send to many
 				entity.destinations.each{
-					entity.org = it
-					
-					addChild(entity,doc)
-					entity.lft = entity.prevtask.lft + 1
-					entity.rgt = entity.prevtask.lft + 2
-					createnewtask(entity,doc)
-					count ++
+					entity.org = it;
+					addChild(doc);
+					createnewtask(entity,doc);
 				}
 			}else{
-				addChild(entity,doc)
-				entity.lft = entity.prevtask.lft + 1
-				entity.rgt = entity.prevtask.lft + 2
-				createnewtask(entity,doc)
+				addChild(doc);
+				createnewtask(entity,doc);
 			}
-    		// println it
+    		
 		}
+
     }
 
-    void closeprevtask(o,doc){
-    	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
-    	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:doc.objid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:o.prevtask.taskid]);
+    void closetaskbyid(o){
+    	taskem.closeTaskById([enddate:dtSvc.serverDate,taskid:o.taskid]);
     }
 
-    public def getprevtask(doc){
-    	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
-    	return taskem.findPrevTask([refid:doc.objid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:doc.taskid]);
-   	}
+    // void closeprevtask(o,doc){
+    // 	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
+    // 	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:doc.objid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:o.prevtask.taskid]);
+    // }
+
+    // public def getprevtask(doc){
+    // 	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
+    // 	return taskem.findPrevTask([refid:doc.objid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:doc.taskid]);
+   	// }
 
    	public def getprevtaskbyid(doc){
-    	def filter = ''' AND dt.objid = $P{taskid} '''
+    	def filter = ''' AND dt.objid = $P{taskid} ''';
     	return taskem.findPrevTask([refid:doc.refid,filter:filter,taskid:doc.taskid]);
    	}
 
-   	//add ka og child
-    void addChild(o,doc){
-    	taskem.changeRight([myleft:o.prevtask.lft,refid:doc.objid])
-		taskem.changeLeft([myleft:o.prevtask.lft,refid:doc.objid])
+   	//add child task
+    void addChild(doc){
+    	taskem.changeRight([myleft:doc.lft,refid:doc.objid]);
+		taskem.changeLeft([myleft:doc.lft,refid:doc.objid]);
     }
 
     //add ka og node kibali igsuon sa child
     void addNode(o,doc){
-    	taskem.changeRight([myleft:o.prevtask.rgt,refid:doc.objid])
-		taskem.changeLeft([myleft:o.prevtask.rgt,refid:doc.objid])
+    	taskem.changeRight([myleft:o.prevtask.rgt,refid:doc.objid]);
+		taskem.changeLeft([myleft:o.prevtask.rgt,refid:doc.objid]);
     }
 
     
 
     void createnewtask(o,doc){
-    	def org = getUserOrg(env.USERID)
-    	def state = ''
-    	
-	    	switch(o.mode) {
-				case "send":
-			    	switch(o.sendtype) {
-						case "local":
-							state = 'enroute'
-							org.organizationid = o.org.OrgUnitId.toString()
-							org.orgname = o.org.name
-							org.orgcode = o.org.code
-							org.address = 'LOCAL'
-							break;
-						case "nonlocal":
-							state = 'closed'
-							org.organizationid = 'NONLOCAL'
-							org.orgname = o.org.name
-							org.orgcode = o.org.code
-							org.address = 'NONLOCAL'
-							break;
-						case "multiplelocal":
-							state = 'enroute'
-							org.organizationid = o.org.OrgUnitId.toString()
-							org.orgname = o.org.name
-							org.orgcode = o.org.code
-							org.address = 'LOCAL'
-							break;	
-						case "multiplenonlocal":
-							state = 'closed'
-							org.organizationid = 'NONLOCAL'
-							break;	
-						default:
-							break;
-					} 
-					break;
-				case "outgoing":
-					state = 'outgoing'
-					break;
-				case "receive":
-					state = 'processing'
-					break;	
-				case "archived":
-					state = 'archived'
-					doc.message = "Cabinet Code:" + o.cabinetcode +" , Folder Code: " +  o.foldercode
-					org.organizationid = o.org.OrgUnitId.toString()
-					org.orgname = o.org.name
-					org.orgcode = o.org.code
-					org.address = 'LOCAL'
-					break;	
-				default:
-					break;
-			}  
-	
+    	def org = getUserOrg(env.USERID).org;
+    	def state = '';
+    		
+    	switch(o.mode) {
+			case "send":
+		    	switch(o.sendtype) {
+					case "nonlocal" || "multiplenonlocal":
+						state = 'closed';
+						o.org.objid = "NONLOCAL";
+						break;
+					default:
+						state = 'enroute';
+						break;
+				} 
+				break;
+			case "outgoing":
+				state = 'outgoing';
+				o.org = org;
+				break;
+			case "receive":
+				state = 'processing';
+				o.org = org;
+				break;	
+			case "archived":
+				state = 'archived';
+				doc.message = "Cabinet Code:" + o.cabinetcode +" , Folder Code: " +  o.foldercode;
+				break;	
+			default:
+				break;
+		}  
+
     	def newtask = [
 			objid          : 'TSK' + new java.rmi.server.UID(),
-			refid          : doc.objid,
+			refid          : doc.refid,
 			parentprocessid: null,
-			lft			   : o.lft,
-			rgt			   : o.rgt,
+			lft			   : doc.lft + 1,
+			rgt			   : doc.lft + 2,
 			state          : state,
 			startdate      : dtSvc.serverDate,
 			enddate		   : (state.matches('archived|closed') ?  dtSvc.serverDate : null),
@@ -247,57 +224,100 @@ public class TagabukidSubayTransactionService  {
 
 		def newtaskorg = [
 			taskid:newtask.objid,
-			orgid:org.organizationid,
 			macaddress:env.MACADDRESS,
-			name:org.orgname,
-			code:org.code,
-			address:org.address,
+			org:o.org,
 		]
 
 
-    	taskem.save(newtask)
-    	taskem.save(newtaskorg,'subaydocumenttaskorg')
+    	taskem.save(newtask);
+    	taskem.save(newtaskorg,'subaydocumenttaskorg');
 
-
-    	if (o.mode == 'send' && o.sendtype.matches('local|multiplelocal')){
-    		//remove outoing task if any
-    		def notification = notifyem.getByObjid([objid: o.prevtask.objid])
-			notification.each{
-				notificationService.removeMessage([objid: o.prevtask.objid]); 
-			}
-
-			def userorg = emuserorg.getUserByOrg([orgid:org.organizationid])
-			userorg.each{
-				it.task = newtask
-				it.doc = doc
-				it.documenttype = emdoctype.findById([objid:doc.documenttypeid])
-			}
-			notifyMessage(userorg)
-    	}else if (o.mode == 'outgoing'){
-    		def userorg = []
-    		if(o.org.OrgUnitId.toString()){
-				userorg = emuserorg.getUserByOrg([orgid:o.org.OrgUnitId.toString()])
-			}
-			def originuserorg = emuserorg.findById([objid:doc.recordlog.createdbyuserid])
-			def originorg = emuserorg.getUserByOrg([orgid:originuserorg.organizationid])
-			originorg.each{
-				userorg.push(it)
-			}
-			userorg.each{
-				it.task = newtask
-				it.doc = doc
-				it.documenttype = emdoctype.findById([objid:doc.documenttypeid])
-			}
-			notifyMessageOutgoing(userorg)
-    	}else if (o.mode == 'receive'){
-	    	def notification = notifyem.getByObjid([objid: o.prevtask.objid])
-			notification.each{
-				notificationService.removeMessage([objid: o.prevtask.objid]); 
-			}
-    	}
+    	notifyOrg(o,doc,newtask);
 		
     	
     }
+
+    void notifyOrg(o,doc,newtask){
+
+    	if (o.mode == 'send' && o.sendtype.matches('local|multiplelocal')){
+    		//remove outgoing task if any
+    		def notification = notifyem.getByObjid([objid: doc.takid])
+			notification.each{
+				notificationService.removeMessage([objid: doc.takid]); 
+			}
+
+			def userorg = emuserorg.getUserByOrg([orgid:o.org.objid])
+
+			userorg.each{
+				it.task = newtask
+				it.doc = doc
+				it.documenttype = emdoctype.findById([objid:doc.documenttypeid])
+			}
+
+			notifyMessage(userorg);
+
+    	}else if (o.mode == 'outgoing'){
+
+    		def userorg = [];
+    		if(o.org.objid){
+				userorg = emuserorg.getUserByOrg([orgid:o.org.objid]);
+			}
+			def originuserorg = emuserorg.findById([objid:doc.recordlog.createdbyuserid]);
+			def originorg = emuserorg.getUserByOrg([orgid:originuserorg.org.objid]);
+			originorg.each{
+				userorg.push(it);
+			}
+
+			userorg.each{
+				it.task = newtask;
+				it.doc = doc;
+				it.documenttype = emdoctype.findById([objid:doc.documenttypeid]);
+			}
+			notifyMessageOutgoing(userorg);
+
+    	}else if (o.mode == 'receive'){
+
+	    	def notification = notifyem.getByObjid([objid: doc.taskid])
+			notification.each{
+				notificationService.removeMessage([objid: doc.taskid]); 
+			}
+			
+    	}
+    }
+
+    @ProxyMethod
+	public void notifyMessage(def o) {
+		o.each {
+	  		def m = [
+	            objid     		: it.task.objid, 
+	            senderid  		: env.USERID,
+	            sender    		: env.FULLNAME,
+	            recipientid   	: it.objid,
+	            recipienttype 	: 'user',
+	            message   		: 'INCOMING ' + it.doc.din + ':' + it.documenttype.name + "|FROM: " + getUserOrg(env.USERID).org.code,
+	            filetype  		: 'document_incoming',
+	            data 	  		: [objid:it.doc.objid,taskid:it.task.objid],
+	        ];
+	        notificationService.addMessage( m );	
+		}
+	}
+
+	@ProxyMethod
+	public void notifyMessageOutgoing(def o) {
+		o.each {
+	  		def m = [
+	            objid     		: it.task.objid, 
+	            senderid  		: env.USERID,
+	            sender    		: env.FULLNAME,
+	            recipientid   	: it.objid,
+	            recipienttype 	: 'user',
+	            message   		: 'OUTGOING ' + it.doc.din + ':' + it.doc.documenttype.name + "|FOR PICKUP AT " + getUserOrg(env.USERID).org.code,
+	            filetype  		: 'document_incoming',
+	            data 	  		: [objid:it.doc.objid,taskid:it.task.objid],
+	        ];
+	        notificationService.addMessage( m );	
+		}
+	}
 
 	@ProxyMethod
     public def getUserOrg(userid){	
@@ -309,43 +329,16 @@ public class TagabukidSubayTransactionService  {
 		}
     }
 
-    @ProxyMethod
-    public def open(o){
-    	println o
-    	if (o.objid && o.taskid){
-    		o.filter = ''' d.objid = $P{objid} AND dt.objid = $P{taskid} ''';
-    	}
-    	else if (o.objid){
-    		o.filter = ''' d.objid = $P{objid} ''';
-    	}
-    	else{
-    		o.filter = ''' d.din = $P{barcodeid} ''';
-    	}
-    	o = em.findDocumentbyBarcode(o)
-    	//def documenttype = emdoctype.findById([objid:o.documenttypeid])
-    
-    	if(o.documenttype.haschild){
-    		o.filter = ''' dl.objid = $P{objid} ''';
-    		o.child = []
-    		o.child = em.getDocumentChild(o)
-    	}
-    	// o.documenttype = emdoctype.findById([objid:o.documenttypeid])
-    	o.currentuser = env.USERID
-    	o.currentorg = getUserOrg(env.USERID).organizationid
-    
-		return o
-		
-    }
 
-    @ProxyMethod
-    public def lookupChild(params){
-    	beforeList(params)
-    	params.filter = ''
-    	params.actorobjid = env.USERID
-    	params.userorgid = getUserOrg(env.USERID)
-    	params.filter = ''' d.din LIKE $P{searchtext} AND dt.state IN ('processing') AND dto.org_objid = $P{userorgid} AND dt.enddate IS NULL'''
-		return em.getDocumentbyDIN(params)
-    }
+  //   @ProxyMethod
+  //   public def lookupChild(params){
+  //   	beforeList(params)
+  //   	params.filter = ''
+  //   	params.actorobjid = env.USERID
+  //   	params.userorgid = getUserOrg(env.USERID)
+  //   	params.filter = ''' d.din LIKE $P{searchtext} AND dt.state IN ('processing') AND dto.org_objid = $P{userorgid} AND dt.enddate IS NULL'''
+		// return em.getDocumentbyDIN(params)
+  //   }
 
     @ProxyMethod
     public def openParentByID(o){
@@ -360,14 +353,14 @@ public class TagabukidSubayTransactionService  {
     		// println o
     		if (!o.prevtask){
     			o.prevtask = [
-    				taskid          : o.taskid,
+					taskid         : o.taskid,
 					refid          : o.refid,
 					parentprocessid: null,
-					lft			   : o.lft,
-					rgt			   : o.rgt,
+					lft            : o.lft,
+					rgt            : o.rgt,
 					state          : o.state,
 					startdate      : o.startdate,
-					enddate		   : o.enddate,
+					enddate        : o.enddate,
 					assignee_objid : o.assignee.objid,
 					assignee_name  : o.assignee.name,
 					assignee_title : o.assignee.title,
@@ -507,39 +500,7 @@ public class TagabukidSubayTransactionService  {
     	
     }
 
-    @ProxyMethod
-	public void notifyMessage(def o) {
-		o.each {
-	  		def m = [
-	            objid     		: it.task.objid, 
-	            senderid  		: env.USERID,
-	            sender    		: env.FULLNAME,
-	            recipientid   	: it.objid,
-	            recipienttype 	: 'user',
-	            message   		: 'INCOMING ' + it.doc.din + ':' + it.documenttype.name + "|FROM: " + getUserOrg(env.USERID).orgcode,
-	            filetype  		: 'document_incoming',
-	            data 	  		: [objid:it.doc.objid,taskid:it.task.objid],
-	        ];
-	        notificationService.addMessage( m );	
-		}
-	}
-
-	@ProxyMethod
-	public void notifyMessageOutgoing(def o) {
-		o.each {
-	  		def m = [
-	            objid     		: it.task.objid, 
-	            senderid  		: env.USERID,
-	            sender    		: env.FULLNAME,
-	            recipientid   	: it.objid,
-	            recipienttype 	: 'user',
-	            message   		: 'OUTGOING ' + it.doc.din + ':' + it.documenttype.name + "|FOR PICKUP AT " + getUserOrg(env.USERID).orgcode,
-	            filetype  		: 'document_incoming',
-	            data 	  		: [objid:it.doc.objid,taskid:it.task.objid],
-	        ];
-	        notificationService.addMessage( m );	
-		}
-	}
+    
 
 	@ProxyMethod
     public def createRedFlagLog(o){
@@ -652,7 +613,7 @@ public class TagabukidSubayTransactionService  {
     	
     }
 
-    void getRedFlagIssues(doc,entity){
+    void checkRedFlagIssues(doc,entity){
     	def redflags = redflagSvc.getOpenIssues( [refid: doc.objid, blockaction:entity.mode]);
 		if( redflags ) {
 			StringBuilder sb = new StringBuilder();

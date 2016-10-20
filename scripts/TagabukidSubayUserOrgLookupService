@@ -1,0 +1,45 @@
+import com.rameses.annotations.*;
+import com.rameses.common.*;
+import com.rameses.services.extended.*;
+
+class TagabukidSubayUserOrgLookupService
+{
+
+	@ActiveDB(value='subayuserorg', em='tagabukid_subay')
+	def em
+
+	@ActiveDB('subayuserorg')
+	def emx
+
+	@Env
+	def env;
+
+	@Service('DateService')
+	def dtSvc 
+
+	void beforeList(params){
+		if (params == null) params = [:]
+		params.searchtext = (params.searchtext ? params.searchtext :'')+'%'
+	}
+
+	@ProxyMethod
+	public def getList( params ) {
+		//get users from userorg
+		beforeList(params)
+		def entity = emx.getEtracsUser([searchtext: params.searchtext])
+		if(entity){
+			params.filter = "objid IN ('" + entity.objid.join("','") + "')";
+			def userorg = em.getList(params)
+			if(userorg){
+				userorg.each{ y ->
+					def user = entity.find{it.objid == y.objid}
+					y.username = user.username
+					y.name = user.name
+				}
+			}
+			return userorg
+		}
+		return []
+	} 
+
+}

@@ -27,4 +27,4 @@ UPDATE subay_user_organization SET state = 'APPROVED' WHERE objid = $P{objid}
 [getUserByOrg]
 SELECT * 
 FROM subay_user_organization
-WHERE organizationid = $P{orgid}
+WHERE org_objid = $P{orgid}

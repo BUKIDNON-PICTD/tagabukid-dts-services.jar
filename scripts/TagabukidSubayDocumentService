@@ -108,7 +108,7 @@ public class TagabukidSubayDocumentService  {
 
 	@ProxyMethod
 	public def verifydin(din) {
-		// try{
+	
 			def prefix = (din.substring(0,5)=="71007" ? din.substring(6,15) : din.substring(0,9)) 
 			def sequence = (din.substring(0,5)=="71007" ? din.substring(15) : din.substring(9)) 
 			din = prefix + sequence
@@ -126,9 +126,7 @@ public class TagabukidSubayDocumentService  {
 
 
 			return [din:din,inv:inv]
-		// }catch(e){
-		// 	throw new Exception("Invalid DIN");
-		// }
+		
 	}
 
 	public def createchildtask(doc,o){
@@ -187,5 +185,33 @@ public class TagabukidSubayDocumentService  {
     void closechildtask(o){
     	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
     	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:o.refid,filter:filter,userorgid:dtsSvc.getUserOrg(env.USERID).org.objid,taskid:o.taskid]);
+    }
+
+
+    @ProxyMethod
+    public def open(o){
+    	if (o.objid && o.taskid){
+    		o.filter = ''' d.objid = $P{objid} AND dt.objid = $P{taskid} ''';
+    	}
+    	else if (o.objid){
+    		o.filter = ''' d.objid = $P{objid} ''';
+    	}
+    	else{
+    		o.filter = ''' d.din = $P{barcodeid} ''';
+    	}
+    	o = em.findDocumentbyBarcode(o)
+    	//def documenttype = emdoctype.findById([objid:o.documenttypeid])
+    
+    	if(o.documenttype.haschild){
+    		o.filter = ''' dl.objid = $P{objid} ''';
+    		o.child = []
+    		o.child = em.getDocumentChild(o)
+    	}
+    	// o.documenttype = emdoctype.findById([objid:o.documenttypeid])
+    	o.currentuser = env.USERID
+    	o.currentorg = dtsSvc.getUserOrg(env.USERID).org.objid
+    
+		return o
+		
     }
 }

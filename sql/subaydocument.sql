@@ -38,8 +38,13 @@ dt.rgt,
 dto.org_objid,
 dto.macaddress,
 dto.org_name,
-dto.org_address
+dto.org_address,
+dtyp.code AS documenttype_code,
+dtyp.name AS documenttype_name,
+dtyp.description AS documenttype_description,
+dtyp.haschild AS documenttype_haschild
 FROM subay_document d
+INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
