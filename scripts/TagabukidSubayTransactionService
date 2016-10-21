@@ -29,14 +29,11 @@ public class TagabukidSubayTransactionService  {
 	@ActiveDB(value='subaydocumentredflag', em='notification') 
     def notifyem; 
 
-	@Service("TagabukidRedflagService")
+	@Service("TagabukidSubayRedflagService")
 	def redflagSvc;
 
 	@Service('NotificationService')
 	def notificationService
-
-	@ActiveDB("af_inventory")
-	def eminv
 
 	@Env
 	def env;
@@ -294,7 +291,7 @@ public class TagabukidSubayTransactionService  {
 	            sender    		: env.FULLNAME,
 	            recipientid   	: it.objid,
 	            recipienttype 	: 'user',
-	            message   		: 'INCOMING ' + it.doc.din + ':' + it.documenttype.name + "|FROM: " + getUserOrg(env.USERID).org.code,
+	            message   		: 'INCOMING ' + it.doc.din + ':' + it.doc.documenttype.name + "|FROM: " + getUserOrg(env.USERID).org.code,
 	            filetype  		: 'document_incoming',
 	            data 	  		: [objid:it.doc.objid,taskid:it.task.objid],
 	        ];
@@ -312,7 +309,7 @@ public class TagabukidSubayTransactionService  {
 	            recipientid   	: it.objid,
 	            recipienttype 	: 'user',
 	            message   		: 'OUTGOING ' + it.doc.din + ':' + it.doc.documenttype.name + "|FOR PICKUP AT " + getUserOrg(env.USERID).org.code,
-	            filetype  		: 'document_incoming',
+	            filetype  		: 'document_outgoing',
 	            data 	  		: [objid:it.doc.objid,taskid:it.task.objid],
 	        ];
 	        notificationService.addMessage( m );	

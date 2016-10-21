@@ -1,8 +1,8 @@
 [getList]
-SELECT * FROM document_redflag WHERE refid=$P{objid}
+SELECT * FROM subay_document_redflag WHERE refid=$P{objid}
 
 [getOpenIssues]
-SELECT * FROM document_redflag WHERE resolved=0 AND refid=$P{refid} AND blockaction=$P{blockaction}
+SELECT * FROM subay_document_redflag WHERE resolved=0 AND refid=$P{refid} AND blockaction=$P{blockaction}
 
 [findDocumentInfo]
 SELECT d.objid,
@@ -37,9 +37,9 @@ dto.orgid,
 dto.macaddress,
 dto.name,
 dto.address
-FROM document d
-INNER JOIN document_task dt ON dt.`refid` = d.`objid`
-INNER JOIN document_task_org dto ON dto.`taskid` = dt.`objid`
+FROM subay_document d
+INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
+INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 WHERE d.objid=$P{refid} AND dt.state = 'redflag' AND dt.enddate IS NULL
 ORDER BY d.title
 
