@@ -3,16 +3,16 @@ import com.rameses.services.extended.*;
 import java.rmi.server.*;
 
 
-class TagabukidDTSListService extends ActiveCrudListService  {
+class TagabukidSubayListService extends ActiveCrudListService  {
 
-	@ActiveDB(value='dts', em='tagabukid_etracs')
+	@ActiveDB(value='subaydocument', em='tagabukid_subay')
 	def em
+
+	@Service("TagabukidSubayTransactionService")
+	def dtssvc;
 
 	@Service("DateService")
 	def dateSvc;
-
-	@Service("TagabukidDTSService")
-	def dtssvc;
 
 	@Env
 	def env;
@@ -37,19 +37,19 @@ class TagabukidDTSListService extends ActiveCrudListService  {
 		cols <<	[name:'documenttype.name', caption:'Document Type', width:130];
 		cols << [name:'recordlog.datecreated', caption:'Date Created', width:130, resizable:false];
 		cols <<	[name:'recordlog.createdbyuser', caption:'Created By', width:130, resizable:false];
-		cols <<	[name:'orgname', caption:'Origin', width:130];
+		cols <<	[name:'senderorg.name', caption:'Doc. Sender/Origin', width:130];
 		cols <<	[name:'actor.name', caption:'OIC/Liaison', width:130, resizable:false];
 		//cols <<	[name:'assignee.name', caption:'Performed By', width:130, resizable:false];
-		cols <<	[name:'name', caption:'Location', width:140, resizable:true];
+		cols <<	[name:'locationorg.name', caption:'Doc. Location', width:140, resizable:true];
 		return cols;
 	}
-
+	
 	public void beforeList(o) {
 		o._pagingKeys = "d.objid";
 		o.filter = '';
 		//int activeyear = dateSvc.getServerYear();
-		def userorgid  = dtssvc.getUserOrg(env.USERID).organizationid
-		o.userorgid = userorgid
+		def userorgid  = dtssvc.getUserOrg(env.USERID).org.objid;
+		o.userorgid = userorgid;
 
 		
 		o.filter += ''' AND (d.din LIKE $P{searchtext}
@@ -61,7 +61,7 @@ class TagabukidDTSListService extends ActiveCrudListService  {
 			case 'search':
 					if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "?";
 					else{
-						o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed')) AND (ug.organizationid = $P{userorgid} OR dto.orgid = $P{userorgid} OR ug2.organizationid = $P{userorgid})''';	
+						o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed')) AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';	
 					}
 				// if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "%";
 				break;
@@ -70,31 +70,31 @@ class TagabukidDTSListService extends ActiveCrudListService  {
 			case 'idle':
 				
 				o.state = 'idle';
-				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (ug.organizationid = $P{userorgid} OR dto.orgid = $P{userorgid} OR ug2.organizationid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
 				break;
 
 			case 'outgoing':
 				
 				o.state = 'outgoing';
-				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (ug.organizationid = $P{userorgid} OR ug2.organizationid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (ug.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
 				break;
 
 			case 'enroute':
 				
 				o.state = 'enroute';
-				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (dto.orgid = $P{userorgid} OR ug2.organizationid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
 				break;
 
 			case 'processing':
 				
 				o.state = 'processing';
-				o.filter += ''' AND dt.state IN ('processing','linked') AND dt.enddate IS NULL AND (ug.organizationid = $P{userorgid} OR dto.orgid = $P{userorgid})''';
+				o.filter += ''' AND dt.state IN ('processing','linked') AND dt.enddate IS NULL AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
 				break;
 
 			case 'archived':
 				
 				o.state = 'archived';
-				o.filter += ''' AND dt.state IN ('attached','archived','closed') AND (ug.organizationid = $P{userorgid} OR dto.orgid = $P{userorgid})''';
+				o.filter += ''' AND dt.state IN ('attached','archived','closed') AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
 				break;
 
 			default:

@@ -3,16 +3,16 @@ import com.rameses.services.extended.*;
 import java.rmi.server.*;
 
 
-class TagabukidDTSAllListService extends ActiveCrudListService  {
+class TagabukidSubayAllListService extends ActiveCrudListService  {
 
-	@ActiveDB(value='dts', em='tagabukid_etracs')
+	@ActiveDB(value='subaydocument', em='tagabukid_subay')
 	def em
+
+	@Service("TagabukidSubayTransactionService")
+	def dtssvc;
 
 	@Service("DateService")
 	def dateSvc;
-
-	@Service("TagabukidDTSService")
-	def dtssvc;
 
 	@Env
 	def env;
@@ -37,10 +37,10 @@ class TagabukidDTSAllListService extends ActiveCrudListService  {
 		cols <<	[name:'documenttype.name', caption:'Document Type', width:130];
 		cols << [name:'recordlog.datecreated', caption:'Date Created', width:130, resizable:false];
 		cols <<	[name:'recordlog.createdbyuser', caption:'Created By', width:130, resizable:false];
-		cols <<	[name:'orgname', caption:'Origin', width:130];
+		cols <<	[name:'senderorg.name', caption:'Doc. Sender/Origin', width:130];
 		cols <<	[name:'actor.name', caption:'OIC/Liaison', width:130, resizable:false];
 		//cols <<	[name:'assignee.name', caption:'Performed By', width:130, resizable:false];
-		cols <<	[name:'name', caption:'Location', width:140, resizable:true];
+		cols <<	[name:'locationorg.name', caption:'Doc. Location', width:140, resizable:true];
 		return cols;
 	}
 
@@ -48,7 +48,7 @@ class TagabukidDTSAllListService extends ActiveCrudListService  {
 		o._pagingKeys = "d.objid";
 		o.filter = '';
 		//int activeyear = dateSvc.getServerYear();
-		def userorgid  = dtssvc.getUserOrg(env.USERID).organizationid
+		def userorgid  = dtssvc.getUserOrg(env.USERID).org.objid;
 		o.userorgid = userorgid
 
 		o.filter += ''' AND (d.din LIKE $P{searchtext}
