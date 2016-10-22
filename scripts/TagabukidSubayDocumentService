@@ -199,7 +199,7 @@ public class TagabukidSubayDocumentService  {
 
     	o = em.findDocumentbyBarcode(o);
     	//def documenttype = emdoctype.findById([objid:o.documenttypeid])
-    
+    	
     	if(o.documenttype.haschild){
     		o.filter = ''' dl.objid = $P{objid} ''';
     		o.child = [];

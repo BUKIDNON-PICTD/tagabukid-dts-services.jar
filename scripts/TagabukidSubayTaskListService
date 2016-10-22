@@ -1,0 +1,88 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+import com.rameses.services.extended.*;
+
+/***********************************************************************
+* This is a generic workflow service. 
+* The em is a dynamic active db. pass the name of the workflow instance
+* workflow instance must have the standard field names
+************************************************************************/
+class TagabukidSubayTaskListService extends ActiveListService {		
+
+	@ActiveDB(value='subaydocumenttask', em='tagabukid_subay')
+	def em
+
+	@ActiveDB(value='subayuserorg', em='tagabukid_subay')
+	def emorg
+
+	String listMethod = "getTaskListByRef"
+
+	public void beforeList(o) {
+		o.taskTablename = "subaydocumenttask";
+	}
+
+	public void afterList(params,list){
+
+		list.each{ 
+			// println it;
+			// throw new Exception("TEST");
+			switch(it.state) {
+			case 'idle':
+				//def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'Initialized at ' + it.org.code;
+				break;
+
+			case 'outgoing':
+				//def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'For Pickup at ' + it.org.code;
+				break;
+
+			case 'enroute':
+				//def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'En Route to ' + it.org.code;
+				break;
+
+			case 'processing':
+				//def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'Processing in ' + it.org.code;
+				break;
+
+			case 'linked':
+				//def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'LINKED';
+				break;
+
+			case 'archived':
+				//def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'Archived at ' + it.org.code;
+				break;
+
+			case 'attached':
+				////def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'Attached';
+				break;
+
+			case 'offline':
+				////def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'OFFLINE';
+				break;
+
+			case 'redflag':
+				//def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'Red Flag for ' + it.org.code;
+				break;
+
+			case 'closed':
+				//def org = emorg.findOrgById([orgid:it.org.objid])
+				it.title = 'Closed ';
+				break;
+
+			default:
+				break;
+		}
+		} 
+	}
+
+
+}

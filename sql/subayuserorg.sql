@@ -14,9 +14,9 @@ OR lastname LIKE $P{searchtext}
 OR middlename LIKE $P{searchtext})
 ORDER BY lastname
 
-[getOrgById]
+[findOrgById]
 SELECT * FROM subay_org_unit
-WHERE OrgUnitId = ${orgid} 
+WHERE OrgUnitId = $P{orgid} 
 
 [findById]
 SELECT * FROM subay_user_organization WHERE objid = $P{objid}

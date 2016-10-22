@@ -54,7 +54,7 @@ WHERE dt.refid = $P{refid} AND objid = $P{taskid}
 
 [getTaskListByRef2]
 SELECT dt.*,dto.*
-FROM ${taskTablename} dt
+FROM subay_document_task dt
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 WHERE dt.refid=$P{refid} 
 ORDER BY dt.startdate
