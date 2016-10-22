@@ -172,11 +172,12 @@ public class TagabukidSubayTransactionService  {
     void createnewtask(o,doc){
     	def org = getUserOrg(env.USERID).org;
     	def state = '';
-    
+    	def docstate = "ACTIVE";
     	switch(o.mode) {
 			case "send":
 				if (o.sendtype.matches("nonlocal|multiplenonlocal")){
 					state = 'closed';
+					docstate = "CLOSED";
 					o.org.code = o.org.name
 				}else{
 					state = 'enroute';
@@ -192,6 +193,7 @@ public class TagabukidSubayTransactionService  {
 				break;	
 			case "archived":
 				state = 'archived';
+				docstate = "CLOSED";
 				doc.message = "Cabinet Code:" + o.cabinetcode +" , Folder Code: " +  o.foldercode;
 				break;	
 			default:
@@ -225,7 +227,7 @@ public class TagabukidSubayTransactionService  {
 	
     	taskem.save(newtask);
     	taskem.save(newtaskorg,'subaydocumenttaskorg');
-
+    	em.udpatestate([objid:doc.objid,state:docstate]);
     	notifyOrg(o,doc,newtask);
 		
     	
