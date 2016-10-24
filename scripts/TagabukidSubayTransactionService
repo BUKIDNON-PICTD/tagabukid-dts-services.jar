@@ -356,66 +356,30 @@ public class TagabukidSubayTransactionService  {
 	
     }
 
-    void createnewofflinetask(o){
-    	def org = getUserOrg(env.USERID)
-    	def state = ''
-    	o.message = "OFFLINE: " + o.message
-	    	switch(o.reconciliationAction) {
-				case "send":
-			    	state = 'enroute'
-					org.address = 'LOCAL'
-					break;
-					break;
-				case "outgoing":
-					state = 'outgoing'
-					break;
-				case "receive":
-					state = 'processing'
-					break;	
-				case "archived":
-					state = 'archived'
-					break;	
-				default:
-					break;
-			}  
-
-    	def newtask = [
-			objid          : 'TSK' + new java.rmi.server.UID(),
-			refid          : o.refid,
-			parentprocessid: null,
-			lft			   : o.task.lft,
-			rgt			   : o.task.rgt,
-			state          : state,
-			startdate      : dtSvc.serverDate,
-			enddate		   : (state.matches('archived|closed') ?  dtSvc.serverDate : null),
-			assignee_objid : env.USERID,
-			assignee_name  : env.FULLNAME,
-			assignee_title : env.JOBTITLE,
-			actor_objid    : env.USERID,
-			actor_name     : env.FULLNAME,
-			actor_title    : env.JOBTITLE,
-			message        : o.message,
-		]
-
-		
-		
-		def newtaskorg = [
-			taskid:newtask.objid,
-			orgid:org.organizationid,
-			macaddress:env.MACADDRESS,
-			name:org.orgname,
-			code:org.orgcode,
-			address:org.address,
-		]
-
-
-    	taskem.save(newtask)
-    	taskem.save(newtaskorg,'subaydocumenttaskorg')
-		
-    	
+    @ProxyMethod
+    public void cancelSend(doc){
+    	println doc;
+    	def tasktodelete = taskem.findTask([objid:doc.taskid])
+    	def parenttask = taskem.findParentNode([refid:doc.objid,taskid:doc.taskid])
+    	def childtask = taskem.getChildTasks([refid:doc.objid,taskid:doc.taskid])
+    	tasktodelete.width = tasktodelete.rgt - tasktodelete.lft + 1
+    	if(childtask.size > 1){
+    		taskem.deleteTaskById([taskid:doc.taskid])
+	    	taskem.updateDeletedTaskrgt([mywidth:tasktodelete.width,myrgt:tasktodelete.rgt,refid:doc.objid])
+	    	taskem.updateDeletedTasklft([mywidth:tasktodelete.width,myrgt:tasktodelete.rgt,refid:doc.objid])
+    	}else{
+    		taskem.deleteTask([mylft:parenttask.lft,myrgt:parenttask.rgt,refid:doc.objid])
+	    	taskem.updateDeletedTaskrgt([mywidth:tasktodelete.width,myrgt:tasktodelete.rgt,refid:doc.objid])
+	    	taskem.updateDeletedTasklft([mywidth:tasktodelete.width,myrgt:tasktodelete.rgt,refid:doc.objid])
+	    	taskem.updateParentNode([taskid:parenttask.objid])
+    	}
+    	// println parenttask
+    	def notification = notifyem.getByObjid([objid: doc.taskid])
+		notification.each{
+			notificationService.removeMessage([objid: doc.taskid]); 
+		}
     }
 
-    
 
 	@ProxyMethod
     public def createRedFlagLog(o){
@@ -476,7 +440,7 @@ public class TagabukidSubayTransactionService  {
     	taskem.save(newtaskorg,'subaydocumenttaskorg')
     }
 
-@ProxyMethod
+	@ProxyMethod
     public def createRedFlagResolveLog(o){
     		o.prevtask = getprevtaskbyid(o)
     		o.state = 'processing'
@@ -503,30 +467,7 @@ public class TagabukidSubayTransactionService  {
     }
 
 
-     @ProxyMethod
-    public void cancelSend(doc){
-    	def tasktodelete = taskem.findTask([objid:doc.taskid])
-    	def parenttask = taskem.findParentNode([refid:doc.objid,taskid:doc.taskid])
-    	def childtask = taskem.getChildTasks([refid:doc.objid,taskid:doc.taskid])
-    	tasktodelete.width = tasktodelete.rgt - tasktodelete.lft + 1
-    	if(childtask.size > 1){
-    		taskem.deleteTaskById([taskid:doc.taskid])
-	    	taskem.updateDeletedTaskrgt([mywidth:tasktodelete.width,myrgt:tasktodelete.rgt,refid:doc.objid])
-	    	taskem.updateDeletedTasklft([mywidth:tasktodelete.width,myrgt:tasktodelete.rgt,refid:doc.objid])
-    	}else{
-    		taskem.deleteTask([mylft:parenttask.lft,myrgt:parenttask.rgt,refid:doc.objid])
-	    	taskem.updateDeletedTaskrgt([mywidth:tasktodelete.width,myrgt:tasktodelete.rgt,refid:doc.objid])
-	    	taskem.updateDeletedTasklft([mywidth:tasktodelete.width,myrgt:tasktodelete.rgt,refid:doc.objid])
-	    	taskem.updateParentNode([taskid:parenttask.objid])
-    	}
-    	// println parenttask
-    	def notification = notifyem.getByObjid([objid: doc.taskid])
-		notification.each{
-			notificationService.removeMessage([objid: doc.taskid]); 
-		}
-    	
-    	
-    }
+    
 
     void checkRedFlagIssues(doc,entity){
     	def redflags = redflagSvc.getOpenIssues( [refid: doc.objid, blockaction:entity.mode]);
