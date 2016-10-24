@@ -212,4 +212,13 @@ public class TagabukidSubayDocumentService  {
 		return o;
 		
     }
+
+    @ProxyMethod
+    public def lookupNode(params){
+		def childtask = taskem.getChildTask([refid:params.refid,taskid:params.taskid])
+		params.searchtext = '%'
+		params.filter =  "AND dt.objid IN ('" + childtask.taskid.join("','") + "')";
+		return em.getList(params)
+
+    }
 }

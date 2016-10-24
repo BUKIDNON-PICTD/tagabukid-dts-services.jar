@@ -387,7 +387,6 @@ public class TagabukidSubayTransactionService  {
 
 	@ProxyMethod
     public def createRedFlagTask(o){
-    	
 			def entity = [:];
 			entity.mode = o.mode;
 			closetaskbyid(o);
@@ -395,22 +394,13 @@ public class TagabukidSubayTransactionService  {
     }
 
 
-    @ProxyMethod
-    public def lookupNode(params){
-		def childtask = taskem.getChildTask([refid:params.refid,taskid:params.taskid])
-		params.searchtext = '%'
-		params.filter =  "AND dt.objid IN ('" + childtask.taskid.join("','") + "')";
-		return em.getList(params)
-
-    }
+    
 
     @ProxyMethod
     public def getStats(){
     	return em.findDocStatsByOrg([userorgid:getUserOrg(env.USERID).organizationid])
     }
 
-
-    
 
     void checkRedFlagIssues(doc,entity){
     	def redflags = redflagSvc.getOpenIssues( [refid: doc.objid, blockaction:entity.mode]);
