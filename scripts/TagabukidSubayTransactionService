@@ -124,12 +124,10 @@ public class TagabukidSubayTransactionService  {
     		if(entity.destinations){ //if send to many
 				entity.destinations.each{
 					entity.org = it;
-					addChild(doc);
-					createnewtask(entity,doc);
+					createnewtask(entity,doc,1);
 				}
 			}else{
-				addChild(doc);
-				createnewtask(entity,doc);
+				createnewtask(entity,doc,1);
 			}
     		
 		}
@@ -137,28 +135,13 @@ public class TagabukidSubayTransactionService  {
     }
 
     void closetaskbyid(o){
-    	taskem.closeTaskById([enddate:dtSvc.serverDate,taskid:o.taskid]);
+		taskem.closeTaskById([enddate:dtSvc.serverDate,taskid:o.taskid]);
     }
 
-    // void closeprevtask(o,doc){
-    // 	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
-    // 	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:doc.objid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:o.prevtask.taskid]);
-    // }
-
-    // public def getprevtask(doc){
-    // 	def filter = ''' AND dto.org_objid = $P{userorgid} AND dt.objid = $P{taskid} '''
-    // 	return taskem.findPrevTask([refid:doc.objid,filter:filter,userorgid:getUserOrg(env.USERID).organizationid,taskid:doc.taskid]);
-   	// }
-
-   	public def getprevtaskbyid(doc){
-    	def filter = ''' AND dt.objid = $P{taskid} ''';
-    	return taskem.findPrevTask([refid:doc.refid,filter:filter,taskid:doc.taskid]);
-   	}
-
    	//add child task
-    void addChild(doc){
-    	taskem.changeRight([myleft:doc.lft,refid:doc.objid]);
-		taskem.changeLeft([myleft:doc.lft,refid:doc.objid]);
+    void addChild(doc,child){
+    	taskem.changeRight([child:child,myleft:doc.lft,refid:doc.objid]);
+		taskem.changeLeft([child:child,myleft:doc.lft,refid:doc.objid]);
     }
 
     //add ka og node kibali igsuon sa child
@@ -169,7 +152,8 @@ public class TagabukidSubayTransactionService  {
 
     
 
-    void createnewtask(o,doc){
+    public def createnewtask(o,doc,child){
+    	addChild(doc,child);
     	def org = getUserOrg(env.USERID).org;
     	def state = '';
     	def docstate = "ACTIVE";
@@ -196,6 +180,9 @@ public class TagabukidSubayTransactionService  {
 				docstate = "CLOSED";
 				doc.message = "Cabinet Code:" + o.cabinetcode +" , Folder Code: " +  o.foldercode;
 				break;	
+			case "offline":
+				state = 'offline';
+				break;	
 			default:
 				break;
 		}  
@@ -205,10 +192,10 @@ public class TagabukidSubayTransactionService  {
 			refid          : doc.refid,
 			parentprocessid: null,
 			lft			   : doc.lft + 1,
-			rgt			   : doc.lft + 2,
+			rgt			   : doc.lft + (2 * child),
 			state          : state,
 			startdate      : dtSvc.serverDate,
-			enddate		   : (state.matches('archived|closed') ?  dtSvc.serverDate : null),
+			enddate		   : (state.matches('archived|closed|offline') ?  dtSvc.serverDate : null),
 			assignee_objid : (o.assignee == null ?  env.USERID : o.assignee.objid),
 			assignee_name  : (o.assignee == null ?  env.FULLNAME : o.assignee.name),
 			assignee_title : (o.assignee == null ?  env.JOBTITLE : o.assignee.jobtitle),
@@ -227,9 +214,10 @@ public class TagabukidSubayTransactionService  {
 	
     	taskem.save(newtask);
     	taskem.save(newtaskorg,'subaydocumenttaskorg');
-    	em.udpatestate([objid:doc.objid,state:docstate]);
+    	em.updatestate([objid:doc.objid,state:docstate]);
     	notifyOrg(o,doc,newtask);
 		
+		return newtask;
     	
     }
 
@@ -346,98 +334,29 @@ public class TagabukidSubayTransactionService  {
 
     @ProxyMethod
     public def createOfflineLog(o){
-    		// println o
-    		if (!o.prevtask){
-    			o.prevtask = [
-					taskid         : o.taskid,
-					refid          : o.refid,
-					parentprocessid: null,
-					lft            : o.lft,
-					rgt            : o.rgt,
-					state          : o.state,
-					startdate      : o.startdate,
-					enddate        : o.enddate,
-					assignee_objid : o.assignee.objid,
-					assignee_name  : o.assignee.name,
-					assignee_title : o.assignee.title,
-					actor_objid    : o.actor.objid,
-					actor_name     : o.actor.name,
-					actor_title    : o.actor.title,
-					message        : o.message,
-    			]
+    	def entity =[:]
+    	entity.mode = o.mode;
+    	entity.org = getUserOrg(env.USERID).org;
+    	closetaskbyid(o);	
 
-    			o.task = [
-    				lft : 0,
-    				rgt : 0,
-    			]
-    		}
-    		closeofflineprevtask(o)
-    		addOfflineChild(o)
-			o.task.lft = o.prevtask.lft + 1
-			o.task.rgt = o.prevtask.lft + 2
-			createofflinetask(o)
-			o.prevtask.lft = o.task.lft
-			o.prevtask.rgt = o.task.rgt
-			addOfflineChild(o)
-			o.task.lft = o.prevtask.lft + 1
-			o.task.rgt = o.prevtask.lft + 2
-			createnewofflinetask(o)
-    }
+		def offlinetask = createnewtask(entity,o,2);
 
-    void addOfflineChild(o){
-    	taskem.changeRight([myleft:o.prevtask.lft,refid:o.refid])
-		taskem.changeLeft([myleft:o.prevtask.lft,refid:o.refid])
-    }
+		entity.mode = o.reconciliationAction;
+        offlinetask.message = "OFFLINE: " + offlinetask.message;
 
-    void closeofflineprevtask(o){
-    	def filter = ''' AND dt.objid = $P{taskid} '''
-    	taskem.closePrevTask([enddate:o.prevtask.startdate,refid:o.refid,filter:filter,taskid:o.prevtask.taskid]);
-    }
+        createnewtask(entity,offlinetask,1);
 
+		def notification = notifyem.getByObjid([objid: o.taskid]);
 
-    void createofflinetask(o){
-    	def org = getUserOrg(env.USERID)
-    	def state = 'offline'
-    	def newtask = [
-			objid          : 'TSK' + new java.rmi.server.UID(),
-			refid          : o.refid,
-			parentprocessid: null,
-			lft			   : o.task.lft,
-			rgt			   : o.task.rgt,
-			state          : state,
-			startdate      : o.prevtask.startdate,
-			enddate		   : dtSvc.serverDate,
-			assignee_objid : env.USERID,
-			assignee_name  : env.FULLNAME,
-			assignee_title : env.JOBTITLE,
-			actor_objid    : env.USERID,
-			actor_name     : env.FULLNAME,
-			actor_title    : env.JOBTITLE,
-			message        : o.message,
-		]
-
-		
-		
-		def newtaskorg = [
-			taskid:newtask.objid,
-			orgid:org.organizationid,
-			macaddress:env.MACADDRESS,
-			name:org.orgname,
-			code:org.orgcode,
-			address:org.address,
-		]
-
-
-    	taskem.save(newtask)
-    	taskem.save(newtaskorg,'subaydocumenttaskorg')
-		
-    	def notification = notifyem.getByObjid([objid: o.prevtask.objid])
 		notification.each{
-			notificationService.removeMessage([objid: o.prevtask.objid]); 
+			notificationService.removeMessage([objid: o.taskid]); 
 		}
+
+		return offlinetask;
+	
     }
 
-      void createnewofflinetask(o){
+    void createnewofflinetask(o){
     	def org = getUserOrg(env.USERID)
     	def state = ''
     	o.message = "OFFLINE: " + o.message

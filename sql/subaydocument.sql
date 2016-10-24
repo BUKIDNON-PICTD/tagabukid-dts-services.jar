@@ -296,10 +296,10 @@ AND dt.state IN ('archived','attached','linked')
 ORDER BY d.title, dt.startdate
 
 [updateparent]
-UPDATE document SET parentid = $P{parentid} WHERE objid = $P{objid}
+UPDATE subay_document SET parentid = $P{parentid} WHERE objid = $P{objid}
 
 [updatestate]
-UPDATE document SET state = $P{state} WHERE objid = $P{objid}
+UPDATE subay_document SET docstate = $P{state} WHERE objid = $P{objid}
 
 [getChild]
 SELECT * FROM subay_document WHERE parentid = $P{objid}

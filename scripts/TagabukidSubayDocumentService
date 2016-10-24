@@ -208,7 +208,7 @@ public class TagabukidSubayDocumentService  {
     	// o.documenttype = emdoctype.findById([objid:o.documenttypeid])
     	o.currentuser = env.USERID;
     	o.currentorg = dtsSvc.getUserOrg(env.USERID).org.objid;
-    	println o;
+    
 		return o;
 		
     }

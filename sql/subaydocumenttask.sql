@@ -83,10 +83,10 @@ INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 WHERE dt.refid = $P{refid} AND dt.enddate IS NULL ${filter}
 
 [changeRight]
-UPDATE subay_document_task SET rgt = rgt + 2 WHERE rgt > $P{myleft} AND refid = $P{refid}
+UPDATE subay_document_task SET rgt = rgt + (2 * $P{child}) WHERE rgt > $P{myleft} AND refid = $P{refid}
 
 [changeLeft]
-UPDATE subay_document_task SET lft = lft + 2 WHERE lft > $P{myleft} AND refid = $P{refid}
+UPDATE subay_document_task SET lft = lft + (2 * $P{child}) WHERE lft > $P{myleft} AND refid = $P{refid}
 
 [getChildTask]
 SELECT xx.*,dto.* FROM (
