@@ -182,7 +182,11 @@ public class TagabukidSubayTransactionService  {
 				break;	
 			case "offline":
 				state = 'offline';
-				break;	
+				break;
+			case "redflag":
+				state = 'redflag';
+				o.org = org;
+				break;		
 			default:
 				break;
 		}  
@@ -382,75 +386,14 @@ public class TagabukidSubayTransactionService  {
 
 
 	@ProxyMethod
-    public def createRedFlagLog(o){
-    		o.prevtask = getprevtaskbyid(o)
-    		o.state = 'redflag'
-    		//println o
-    		closeredflagprevtask(o)
-    		addRedFlagChild(o)
-			o.tasklft = o.prevtask.lft + 1
-			o.taskrgt = o.prevtask.lft + 2
-			createredflagtask(o)
-			
-    }
-
-    void addRedFlagChild(o){
-    	taskem.changeRight([myleft:o.prevtask.lft,refid:o.refid])
-		taskem.changeLeft([myleft:o.prevtask.lft,refid:o.refid])
-    }
-
-    void closeredflagprevtask(o){
-    	def filter = ''' AND dt.objid = $P{taskid} '''
-    	taskem.closePrevTask([enddate:dtSvc.serverDate,refid:o.refid,filter:filter,taskid:o.prevtask.taskid]);
-    }
-
-    void createredflagtask(o){
-    	def org = getUserOrg(env.USERID)
+    public def createRedFlagTask(o){
     	
-    	def newtask = [
-			objid          : 'TSK' + new java.rmi.server.UID(),
-			refid          : o.refid,
-			parentprocessid: null,
-			lft			   : o.tasklft,
-			rgt			   : o.taskrgt,
-			state          : o.state,
-			startdate      : dtSvc.serverDate,
-			assignee_objid : env.USERID,
-			assignee_name  : env.FULLNAME,
-			assignee_title : env.JOBTITLE,
-			actor_objid    : env.USERID,
-			actor_name     : env.FULLNAME,
-			actor_title    : env.JOBTITLE,
-			message        : o.message,
-		]
-
-		
-		
-		def newtaskorg = [
-			taskid:newtask.objid,
-			orgid:(o.state == 'redflag'? o.org.OrgUnitId.toString() : org.organizationid),
-			macaddress:(o.state == 'redflag'? o.org.Entity.Name.toString(): env.MACADDRESS),
-			name:(o.state == 'redflag'? o.org.Entity.Name.toString() : org.orgname),
-			code:(o.state == 'redflag'? o.org.Entity.AcronymAbbreviation.toString() : org.orgcode),
-			address:(o.state == 'redflag'? "LOCAL" : org.address),
-		]
-
-
-    	taskem.save(newtask)
-    	taskem.save(newtaskorg,'subaydocumenttaskorg')
+			def entity = [:];
+			entity.mode = o.mode;
+			closetaskbyid(o);
+			createnewtask(entity,o,1);
     }
 
-	@ProxyMethod
-    public def createRedFlagResolveLog(o){
-    		o.prevtask = getprevtaskbyid(o)
-    		o.state = 'processing'
-    		closeredflagprevtask(o)
-    		addRedFlagChild(o)
-			o.tasklft = o.prevtask.lft + 1
-			o.taskrgt = o.prevtask.lft + 2
-			createredflagtask(o)
-    }
-	
 
     @ProxyMethod
     public def lookupNode(params){

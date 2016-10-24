@@ -30,12 +30,13 @@ public class TagabukidSubayRedflagService extends ActiveCrudListService {
 	def env;
 
 	public void beforeCreate(o) {
+        o.objid = "DRF"+new UID();
+		o.caseno = "RF-"+seqSvc.getNextFormattedSeries("DTS_REDFLAG");
+		o.refid = o.refid;
 		o.dtfiled = dateSvc.getServerDate();
 		o.filedby = [objid:env.USERID, name: env.FULLNAME];
-		o.caseno = "RF-"+seqSvc.getNextFormattedSeries("DTS_REDFLAG");
 		o.effectivedate = dateSvc.getServerDate();
 		o.resolved = 0;
-		o.organizationid = o.org.objid;
 	}
 
 	@ProxyMethod
@@ -45,8 +46,10 @@ public class TagabukidSubayRedflagService extends ActiveCrudListService {
 		o.resolvedby = [objid:env.USERID, name: env.FULLNAME];
 		o.resolved = 1;
 		em.update( o );
+		dtssvc.createRedFlagTask(o);
+
 		def notification = notifyem.getByObjid([objid: o.objid])
-		dtssvc.createRedFlagResolveLog(o)
+	
 		notification.each{
 			notificationService.removeMessage([objid: o.objid]); 
 		}
@@ -60,20 +63,10 @@ public class TagabukidSubayRedflagService extends ActiveCrudListService {
 	}
 
 	public void afterOpen( o ) {
-		
 		def b = em.findDocumentInfo( o );
-        o.din = b.din;
-        o.title = b.title;
-        o.author = b.author;
-        o.description = b.description;
-        o.documenttype = b.documenttype;
-        o.recordlog = b.recordlog;
-        o.state = b.state;
-        o.refid = b.objid;
-        o.taskid = b.taskid;
-        o.org = emuserorg.getOrgById([orgid:"'"+o.org.objid+"'"])[0]
-       	
-        // o.documenttype = dtssvc.open([barcodeid:o.din]).documenttype
+        b.putAll(o);
+        o.putAll(b);
+        o.org.name = emuserorg.findOrgById([orgid:o.org.objid]).Entity.Name;
 	}
 	public void afterCreate(o) {
 		def uesrorg = emuserorg.getUserByOrg([orgid:o.org.objid])
@@ -89,7 +82,7 @@ public class TagabukidSubayRedflagService extends ActiveCrudListService {
 			rf.push(x)
 		}
 		//println rf.filedby.objid
-		dtssvc.createRedFlagLog(o)
+		dtssvc.createRedFlagTask(o)
 		notifyMessage(rf)
 	}
 

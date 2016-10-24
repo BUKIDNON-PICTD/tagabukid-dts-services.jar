@@ -15,7 +15,7 @@
 		<field name="resolvedby_objid"/>
 		<field name="resolvedby_name"/>
 		<field name="remarks" />
-		<field name="organizationid" required="true"/>
+		<field name="org_objid" required="true"/>
 	</element>	
 
 </schema>
