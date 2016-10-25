@@ -31,7 +31,7 @@ public class TagabukidSubayLookupService
 
 	@ProxyMethod
 	public def lookupDocumentType( params ) {
-		return util.lookup( 'documenttype:getList', params,'objid' )
+		return util.lookup( 'subaydocumenttype:getList', params,'objid' )
 	}
 
 	@ProxyMethod
