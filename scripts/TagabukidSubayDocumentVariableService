@@ -1,0 +1,21 @@
+import com.rameses.annotations.*;
+import com.rameses.functions.*;
+import com.rameses.rules.common.*;
+import housing.facts.*;
+import housing.actions.*;
+
+class TagabukidSubayDocumentVariableService {
+	
+	@Service("RuleExecutorService")
+	def ruleSvc;
+
+	@ProxyMethod
+	public def getInfos( def o ) {
+		def facts = [];
+		facts << new Ledger( type: o.type );
+		def res = ruleSvc.execute( "housingbilling", facts, null, null );
+		return res.infos;
+	}
+
+
+}

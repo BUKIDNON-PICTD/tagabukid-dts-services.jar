@@ -70,10 +70,10 @@ class TagabukidSubayDINInventoryService extends ActiveCrudListService
 		beforeList(params)
 		def inventory = em.getList(params)
 		inventory.each{
-			def org = empostref.getOrgById([orgid:"'"+it.org.objid+"'"]);
+			def org = empostref.findOrgById([orgid:it.org.objid]);
 			it.org.objid = org.OrgUnitId;
-			it.org.name  = org.Entity[0].Name;
-			it.org.code  = org.Entity[0].AcronymAbbreviation;
+			it.org.name  = org.Entity.Name;
+			it.org.code  = org.Entity.AcronymAbbreviation;
 		}
 		return inventory
 		

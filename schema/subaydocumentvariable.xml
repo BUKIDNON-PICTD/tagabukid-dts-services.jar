@@ -1,0 +1,9 @@
+<schema adapter="tagabukid_subay">
+	<element name="subaydocumentvariable" tablename="subay_document_variable">
+		<field name="objid" primary="true" prefix="SINFO"/>
+		<field name="caption" />
+		<field name="datatype" />
+		<field name="handler" />
+		<field name="expression" />
+	</element>
+</schema>

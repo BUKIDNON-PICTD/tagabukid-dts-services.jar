@@ -5,6 +5,7 @@
 		<field name="code" required="true"/>
 		<field name="name"/>
 		<field name="description"/>
+		<field name="handler"/>
 		<field name="haschild"/>
 		<field name="recordlog_datecreated" required="true"/>
 		<field name="recordlog_createdbyuserid" required="true"/>

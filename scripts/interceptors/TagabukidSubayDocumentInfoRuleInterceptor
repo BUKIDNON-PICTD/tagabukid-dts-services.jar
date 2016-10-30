@@ -1,0 +1,53 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+import com.rameses.services.extended.*;
+import subay.facts.*;
+import subay.util.*;
+import com.rameses.rules.common.*;
+
+public class TagabukidSubayDocumentInfoRuleInterceptor {
+
+	@Env
+	def env;
+
+	@ActiveDB(value='subaydocumenttype', em='tagabukid_subay')
+	def emDT
+
+	@Before(pattern="(TagabukidSubayDocumentInfoRuleService).execute")
+	public void buildDocumentInfoFacts(def evt) { 
+		def o = evt.args[0];
+
+		if(!o.documenttype.objid)
+			throw new Exception("Please provide at least one document type");
+		def facts = [];
+		// facts << new DocumentType( o.documenttype.objid );
+
+		//this is so we will not process derived infos.	
+		o.docinfos?.removeAll( o.docinfos.findAll{it.phase==null || it.phase > 1} );	
+		
+		//we need to retrieve lob to be absolutely sure.
+		def doctypeinfo = emDT.findById( [objid: o.documenttype.objid ]);
+		facts << new DocumentType(doctypeinfo);
+		// lobMap.put( it.lobid, DocumentType );
+			
+		//murag sa derived info ni
+		// if(app.infos!=null ) {
+		// 	app.infos?.each {
+		// 		def dtype = it.attribute.datatype;
+		// 		def f = new BusinessInfo(dtype, it.value);
+		// 		f.objid = it.objid;
+		// 		f.name = it.attribute.name;
+		// 		if(it.lob) f.lob = lobMap[ it.lob.objid ];
+		// 		facts << f;
+		// 	}
+		// }
+		
+		env.facts = facts;
+
+	}
+
+
+
+
+}
