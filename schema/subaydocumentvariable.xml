@@ -1,9 +1,15 @@
 <schema adapter="tagabukid_subay">
 	<element name="subaydocumentvariable" tablename="subay_document_variable">
 		<field name="objid" primary="true" prefix="SINFO"/>
-		<field name="caption" />
-		<field name="datatype" />
-		<field name="handler" />
-		<field name="expression" />
+		<field name="state" required="true" caption="State"/>
+		<field name="name" required="true" caption="Name"/>
+		<field name="caption" required="true" caption="Caption"/>
+		<field name="description" required="true" caption="Description"/>
+		<field name="datatype" required="true" caption="Data Type"/>
+		<field name="category" required="true" caption="Category"/>
+		<field name="arrayvalue" required="true" caption="Array Value"/>
+		<field name="sortorder" required="true" caption="Sort Order"/>
+		<field name="handler" required="true" caption="Handler"/>
+		<field name="expression" required="true" caption="Expression"/>
 	</element>
 </schema>
