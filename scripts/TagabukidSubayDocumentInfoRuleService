@@ -57,7 +57,7 @@ public class TagabukidSubayDocumentInfoRuleService  {
 
 	def buildActions(def request) {
 		def actions = new RuleAction();
-		actions.addCommand( "ask_document_info", new AskDocumentInfo());
+		actions.addCommand( "ask_document_info", new AskDocumentInfo(infotype:'info', DV:dv, request:request ));
 		return actions;
 	}
 
@@ -66,22 +66,20 @@ public class TagabukidSubayDocumentInfoRuleService  {
 		def request = [newinfos:[],  vars:[:], entity: o, facts:env.facts ]; 
 		request.actions = buildActions( request );
 		def grps = ruleDB.getRulegroups( [ruleset: RULESET] );
-		ruleSvc.execute( RULESET, request.facts, request.actions, 'initdocinfo' );
 
-		// int phase = 0;
-		// for( g in grps ) {
-		// 	request.phase = phase;
-		// 	request.vars.clear();
-		// 	// println RULESET + " - " + request.facts + " - " + request.actions + " - " + g.name;
-		// 	ruleSvc.execute( RULESET, request.facts, request.actions, g.name );
-		// 	//if first phase and there is entry in newinfos break it.
-		// 	if(phase <= 1 && request.newinfos) break;
-		// 	phase++;
-		// }
-		// if(phase == 1) phase = 2;
+		int phase = 0;
+		for( g in grps ) {
+			request.phase = phase;
+			request.vars.clear();
+			ruleSvc.execute( RULESET, request.facts, request.actions, g.name );
+			//if first phase and there is entry in newinfos break it.
+			if(phase <= 1 && request.newinfos) break;
+			phase++;
+		}
+		if(phase == 1) phase = 2;
 		
-		// return [infos:request.newinfos, phase: phase];
-		return null;
+		return [infos:request.newinfos, phase: phase];
+		
 	}
 	
 }

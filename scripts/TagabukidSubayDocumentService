@@ -31,7 +31,7 @@ public class TagabukidSubayDocumentService  {
 		entity.state = 'IDLE'
 		entity.docstate = 'IDLE'
 		entity.child = []
-		entity.docinfo = [:]
+		entity.infos = [:]
 		entity.recordlog.datecreated = dtSvc.serverDate
 		entity.recordlog.createdbyuserid = env.USERID
 		entity.recordlog.createdbyuser = env.FULLNAME

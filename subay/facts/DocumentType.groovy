@@ -18,6 +18,5 @@ public class DocumentType {
 	public DocumentType(def o) {
         this.objid = o.objid;
         this.doctypeid = o.objid;
-        println this.objid;
     }
 }
