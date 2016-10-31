@@ -8,6 +8,9 @@ public class TagabukidSubayDocumentService  {
 	@ActiveDB(value='subaydocument', em='tagabukid_subay')
 	def em
 
+	@ActiveDB(value='subaydocumentinfo', em='tagabukid_subay')
+	def eminfo
+
 	@ActiveDB(value='subaydocumenttask', em='tagabukid_subay')
 	def taskem
 
@@ -31,7 +34,7 @@ public class TagabukidSubayDocumentService  {
 		entity.state = 'IDLE'
 		entity.docstate = 'IDLE'
 		entity.child = []
-		entity.infos = [:]
+		// entity.docinfos = [:]
 		entity.recordlog.datecreated = dtSvc.serverDate
 		entity.recordlog.createdbyuserid = env.USERID
 		entity.recordlog.createdbyuser = env.FULLNAME
@@ -50,6 +53,7 @@ public class TagabukidSubayDocumentService  {
 		// o.documenttypeid =  o.documenttype.objid
 		o.org = dtsSvc.getUserOrg(env.USERID).org
 		em.create(o);
+		saveinfo(o);
 		createinittask(o);
 
 
@@ -74,6 +78,12 @@ public class TagabukidSubayDocumentService  {
 		}
 
 		return o;
+    }
+    void saveinfo(o){
+    	o.docinfos.each{
+    		it.refid = o.objid
+    		eminfo.create(it);
+    	}
     }
 
     public def createinittask(o){

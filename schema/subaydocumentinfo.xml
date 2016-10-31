@@ -1,8 +1,8 @@
 <schema adapter="tagabukid_subay">
 
-	<element tablename="subay_document_info">
+	<element name="subaydocumentinfo" tablename="subay_document_info">
 		<field name="objid" primary="true" prefix="sDI"/>
-		<field name="ledgerid" />
+		<field name="refid" />
 		<field name="caption" />
 		<field name="fieldid" />
 		<field name="fieldtype" />
