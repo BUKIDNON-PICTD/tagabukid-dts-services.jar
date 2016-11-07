@@ -1,7 +1,8 @@
 [getList]
-SELECT * 
-FROM subay_din_inventory
-ORDER BY recordlog_datecreated
+SELECT di.*,ty.`Entity_Name` AS org_name,ty.`Entity_AcronymAbbreviation` AS org_code
+FROM subay_din_inventory di
+INNER JOIN subay_org_unit ty ON ty.`OrgUnitId` = di.`org_objid`
+ORDER BY recordlog_datecreated DESC
 
 [findById]
 SELECT * FROM subay_din_inventory WHERE objid = $P{objid}
