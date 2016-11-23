@@ -54,7 +54,7 @@ public class AskDocumentInfo implements RuleActionHandler {
 		}
 
 		info.datatype = info.attribute.datatype;
-		
+		// println info
 		if(val) {
 			String datatype = info.attribute.datatype;
 			switch(datatype) {

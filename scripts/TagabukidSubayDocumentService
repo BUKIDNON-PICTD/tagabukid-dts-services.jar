@@ -81,7 +81,10 @@ public class TagabukidSubayDocumentService  {
     }
     void saveinfo(o){
     	o.docinfos.each{
-    		it.refid = o.objid
+    		it.refid = o.objid;
+    		it.caption = it.attribute.caption;
+    		it.fieldid = it.attribute.objid;
+    		it.fieldtype = it.attribute.datatype;
     		eminfo.create(it);
     	}
     }
@@ -223,7 +226,7 @@ public class TagabukidSubayDocumentService  {
     	// o.documenttype = emdoctype.findById([objid:o.documenttypeid])
     	o.currentuser = env.USERID;
     	o.currentorg = dtsSvc.getUserOrg(env.USERID).org.objid;
-    
+    	o.infos = eminfo.getinfo([refid:o.objid]);
 		return o;
 		
     }
