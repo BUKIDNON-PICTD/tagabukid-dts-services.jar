@@ -203,11 +203,16 @@ public class TagabukidSubayDocumentService  {
     	
     	if (o.taskid){
     		o.filter = ''' dt.objid = $P{taskid} ''';
-    	}else{
+    	}else if(o.barcodeid){
     		o.filter = ''' d.din = $P{barcodeid} ''';
+    	}else{
+    		def doc = em.finddocumenttaskid([objid:o.objid]);
+    		o.taskid = doc.objid;
+    		o.filter = ''' dt.objid = $P{taskid} ''';
     	}
 
     	o = em.findDocumentbyBarcode(o);
+
     	//def documenttype = emdoctype.findById([objid:o.documenttypeid])
     	
     	if(o.documenttype.haschild){

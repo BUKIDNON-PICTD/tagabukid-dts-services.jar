@@ -4,6 +4,11 @@ FROM subay_document
 WHERE title LIKE $P{title}
 ORDER BY title
 
+[finddocumenttaskid]
+SELECT * FROM subay_document_task WHERE refid = $P{objid} AND lft = (SELECT MAX(lft)
+FROM subay_document_task
+WHERE refid = $P{objid})
+
 [getDocumentbyDIN]
 SELECT d.objid,
 d.docstate,
