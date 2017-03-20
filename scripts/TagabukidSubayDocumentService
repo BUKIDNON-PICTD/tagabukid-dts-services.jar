@@ -80,14 +80,26 @@ public class TagabukidSubayDocumentService  {
 		return o;
     }
     void saveinfo(o){
-    	o.docinfos.each{
-    		it.refid = o.objid;
-    		it.caption = it.attribute.caption;
-    		it.fieldid = it.attribute.objid;
-    		it.fieldtype = it.attribute.datatype;
-    		eminfo.create(it);
-    	}
+    	if(!o.objid) throw new Exception("documentid is required");
+		if(!o.docinfos) throw new Exception("docinfos is required");
+		if(o.remove_all == true) eminfo.removeDocumentInfos( o );
+		o.docinfos.each {
+			it.documentid = o.objid;
+			it.type = 'documentinfo';
+			convertInfo(it);
+			eminfo.create( it );
+		}
+		eminfo.cleanupInfos([documentid:o.objid,documenttypeid:o.documenttype.objid]);
     }
+
+    @ProxyMethod
+	public def getDocumentInfos(o) {
+		def infos = eminfo.getDocumentInfos( o );
+		infos.each {
+			it.value = formatInfo(it);
+		}
+		return infos;
+	}	
 
     public def createinittask(o){
 		def inittask = [
@@ -239,4 +251,40 @@ public class TagabukidSubayDocumentService  {
 		return em.getList(params)
 
     }
+
+    private void convertInfo(o) {
+		def value = o.value;
+		if( value == null ) return;
+		switch(o.attribute.datatype) {
+			case "decimal":
+				o.decimalvalue = Double.parseDouble(value+"");
+				break;
+			case "integer":
+				o.intvalue = Integer.parseInt(value+"");
+				break;
+			case "string_array":	
+			case "string":
+				o.stringvalue = (String)value;
+				break;
+			case "boolean":
+				value = ( value == 1 || value == true ) ? "true" : "false";
+				boolean b =  Boolean.parseBoolean(value);
+				o.boolvalue = (b) ? 1 : 0; 
+				break;
+		} 
+	}
+
+	private def formatInfo(x)  {
+		switch(x.attribute.datatype) {
+			case "decimal" : return x.decimalvalue; break;
+			case "integer" : return x.intvalue; break;
+			case "string_array" : return x.stringvalue; break;
+			case "string"  : return x.stringvalue; break;
+			case "boolean" : 
+				if(x.boolvalue == 0) return false;
+				if(x.boolvalue == 1) return true;
+				return x.boolvalue; 
+				break;
+		}
+	}
 }

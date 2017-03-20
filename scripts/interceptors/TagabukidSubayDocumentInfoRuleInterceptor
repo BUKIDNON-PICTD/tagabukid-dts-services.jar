@@ -8,44 +8,112 @@ import com.rameses.rules.common.*;
 
 public class TagabukidSubayDocumentInfoRuleInterceptor {
 
+	// @Env
+	// def env;
+
+	// @ActiveDB(value='subaydocumenttype', em='tagabukid_subay')
+	// def emDT
+
+	// @Before(pattern="(TagabukidSubayDocumentInfoRuleService).execute")
+	// public void buildDocumentInfoFacts(def evt) { 
+	// 	def o = evt.args[0];
+
+	// 	if(!o.documenttype.objid)
+	// 		throw new Exception("Please provide at least one document type");
+	// 	def facts = [];
+	// 	// facts << new DocumentType( o.documenttype.objid );
+
+	// 	//this is so we will not process derived infos.	
+	// 	o.docinfos?.removeAll( o.docinfos.findAll{it.phase==null || it.phase > 1} );	
+		
+	// 	//we need to retrieve lob to be absolutely sure.
+	// 	def doctypeinfo = emDT.findById( [objid: o.documenttype.objid ]);
+	// 	facts << new DocumentType(doctypeinfo);
+	// 	// lobMap.put( it.lobid, DocumentType );
+			
+	// 	//murag sa derived info ni
+	// 	// if(app.infos!=null ) {
+	// 	// 	app.infos?.each {
+	// 	// 		def dtype = it.attribute.datatype;
+	// 	// 		def f = new BusinessInfo(dtype, it.value);
+	// 	// 		f.objid = it.objid;
+	// 	// 		f.name = it.attribute.name;
+	// 	// 		if(it.lob) f.lob = lobMap[ it.lob.objid ];
+	// 	// 		facts << f;
+	// 	// 	}
+	// 	// }
+		
+	// 	env.facts = facts;
+
+	// }
+
 	@Env
 	def env;
 
-	@ActiveDB(value='subaydocumenttype', em='tagabukid_subay')
-	def emDT
+	// @Service("BusinessolicationFactBuilder")
+	// def factBuilder;
+
+	@Service("NumberService")
+	def numberSvc;
+
+	@Service("DateService")
+	def dateSvc;
 
 	@Before(pattern="(TagabukidSubayDocumentInfoRuleService).execute")
-	public void buildDocumentInfoFacts(def evt) { 
+	public void buildHouseholdInfoFacts(def evt) { 
 		def o = evt.args[0];
-
+		// println o
 		if(!o.documenttype.objid)
 			throw new Exception("Please provide at least one document type");
 		def facts = [];
-		// facts << new DocumentType( o.documenttype.objid );
+		// def currDate = dateSvc.getServerDate();
+		// def dt = currDate;
+		// if(o.dtfiled && !(o.dtfiled instanceof java.util.Date)) {
+		// 	dt = dateSvc.parse('yyyy-MM-dd', o.dtfiled );
+		// }
+		// facts << new EffectiveDate( dt );
+		// facts << new CurrentDate(currDate);
 
 		//this is so we will not process derived infos.	
-		o.docinfos?.removeAll( o.docinfos.findAll{it.phase==null || it.phase > 1} );	
+		o.infos?.removeAll( o.infos.findAll{it.phase==null || it.phase > 1} );	
 		
-		//we need to retrieve lob to be absolutely sure.
-		def doctypeinfo = emDT.findById( [objid: o.documenttype.objid ]);
-		facts << new DocumentType(doctypeinfo);
-		// lobMap.put( it.lobid, DocumentType );
-			
-		//murag sa derived info ni
-		// if(app.infos!=null ) {
-		// 	app.infos?.each {
-		// 		def dtype = it.attribute.datatype;
-		// 		def f = new BusinessInfo(dtype, it.value);
-		// 		f.objid = it.objid;
-		// 		f.name = it.attribute.name;
-		// 		if(it.lob) f.lob = lobMap[ it.lob.objid ];
-		// 		facts << f;
-		// 	}
-		// }
+		def documenttypeMap = [:];
+		def document = new Document(o);
+		facts << document;
+		// if( o.household?.address ) {
+		// 	facts << new HouseholdLocation( o.household.address );
+		// }	
+		if(o.documenttype.objid!=null) {
+			// o.members?.each {
+				//we need to retrieve HHM to be absolutely sure.
+				// def hhmInfo = em.findMember( [objid: it.hhmid ]);
+				def DocumentType = new DocumentType(o.documenttype);
+				// HHM.name = it.member.name;
+
+				// HHM.name = hhmInfo.name;
+				// HHM.classification = hhmInfo.classification?.objid;
+				// HHM.attributes = "-" + em.getAttributes( [hhmid: it.hhmid ] )*.name.join("-") + "-";
+				facts << DocumentType;
+				documenttypeMap.put( o.documenttype.objid, DocumentType );
+			// }
+		}
+		println o.infos
+		if(o.infos!=null ) {
+			o.infos?.each {
+				def dtype = it.attribute.datatype;
+				def f = new DocumentInfo(dtype, it.value);
+				f.objid = it.objid;
+				f.name = it.attribute.name;
+				if(it.documenttype) f.documenttype = documenttypeMap[ it.documenttype.objid ];
+				facts << f;
+			}
+		}
 		
-		env.facts = facts;
+		env.facts = facts;	
 
 	}
+
+
 
 
 

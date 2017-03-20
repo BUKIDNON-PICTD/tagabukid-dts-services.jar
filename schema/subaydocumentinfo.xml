@@ -1,20 +1,19 @@
 <schema adapter="tagabukid_subay">
 
-	<element name="subaydocumentinfo" tablename="subay_document_info">
-		<field name="objid" primary="true" prefix="sDI"/>
-		<field name="refid" />
-		<field name="caption" />
-		<field name="fieldid" />
-		<field name="fieldtype" />
-		<field name="stringvalue" />
-		<field name="datevalue" />
+	<element name="subaydocumentinfo" tablename="subay_document_info" prefix="SDI">
+		<field name="objid" primary="true" caption=""/>
+		<field name="documentid" required="true" caption=""/>
+		<field name="type" required="true" caption=""/>
+		<field name="attribute_objid" required="true" caption=""/>
+		<field name="attribute_name" required="true" caption=""/>
+		<field name="documenttype_objid" required="true" caption=""/>
+		<field name="documenttype_name" required="true" caption=""/>
 		<field name="decimalvalue" />
-		<field name="intvalue" />
-		<field name="boolvalue" />
-		<field name="lookup_objid" />
-		<field name="lookup_title" />
-		<field name="lookup_type" />
-		<complex name="info" serializer="default" required="false"/>
+		<field name="intvalue"/>
+		<field name="stringvalue"/>
+		<field name="boolvalue"/>
+		<field name="phase"/>
+		<field name="level"/>
 	</element>
 
 </schema>

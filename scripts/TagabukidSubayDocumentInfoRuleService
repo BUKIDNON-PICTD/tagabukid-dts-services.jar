@@ -14,9 +14,6 @@ public class TagabukidSubayDocumentInfoRuleService  {
 	@ActiveDB("rule")
 	def ruleDB;
 
-	@ActiveDB("lob")
-	def lob;
-
 	@DataContext("subaydocumentvariable")
 	def dv;
 
@@ -57,7 +54,10 @@ public class TagabukidSubayDocumentInfoRuleService  {
 
 	def buildActions(def request) {
 		def actions = new RuleAction();
-		actions.addCommand( "ask_document_info", new AskDocumentInfo(infotype:'info', DV:dv, request:request ));
+		actions.addCommand( "ask_document_info", new AskDocumentInfo( infotype:'info', DV:dv, request:request ));
+		actions.addCommand( "assert_document_info", new AssertDocumentInfo(request:request, DV:dv,  comparator: comparator));
+		actions.addCommand( "document_sysvar", new AddSysVar(request:request, comparator: comparator));
+		actions.addCommand( "print_test", new PrintTest());
 		return actions;
 	}
 
@@ -66,9 +66,11 @@ public class TagabukidSubayDocumentInfoRuleService  {
 		def request = [newinfos:[],  vars:[:], entity: o, facts:env.facts ]; 
 		request.actions = buildActions( request );
 		def grps = ruleDB.getRulegroups( [ruleset: RULESET] );
-
 		int phase = 0;
+		def title = "";
 		for( g in grps ) {
+			title = g.title;
+			request.phasename = g.name;
 			request.phase = phase;
 			request.vars.clear();
 			ruleSvc.execute( RULESET, request.facts, request.actions, g.name );
@@ -76,11 +78,12 @@ public class TagabukidSubayDocumentInfoRuleService  {
 			if(phase <= 1 && request.newinfos) break;
 			phase++;
 		}
-		if(phase == 1) phase = 2;
+		// if(phase == 1) phase = 2;
 		
-		return [infos:request.newinfos, phase: phase];
+		return [infos:request.newinfos, phase: phase, title:title];
 		
 	}
+
 	
 }
 

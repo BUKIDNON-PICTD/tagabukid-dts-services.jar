@@ -1,15 +1,15 @@
 <schema adapter="tagabukid_subay">
 	<element name="subaydocumentvariable" tablename="subay_document_variable">
-		<field name="objid" primary="true" prefix="DV"/>
-		<field name="state" visible="false" editable="false" caption="State"/>
-		<field name="name" required="true" caption="Name" searchable="true"/>
-		<field name="caption" required="true" caption="Caption"/>
-		<field name="description" visible="false" caption="Description" searchable="true"/>
-		<field name="datatype" required="true" caption="Data Type"/>
-		<field name="category" caption="Category"/>
-		<complex name="arrayvalues" visible="false" serializer="default"/>
-		<field name="sortorder" visible="false" caption="Sort Order"/>
-		<field name="handler" visible="false" caption="Handler"/>
-		<field name="expression" visible="false" caption="Expression"/>
+		<field name="objid" primary="true"/>
+		<field name="state" required="true" visible="false"/>
+		<field name="name" required="true" />
+		<field name="datatype" required="true"/>
+		<field name="caption" required="true"/>
+		<field name="description" visible="false"/>
+		<field name="system" required="true" visible="false"/>
+		<complex name="arrayvalues" serializer="default" visible="false"/>
+		<field name="sortorder" required="true" visible="false"/>
+		<field name="category" visible="false"/>
+		<field name="handler" visible="false"/>
 	</element>
 </schema>
