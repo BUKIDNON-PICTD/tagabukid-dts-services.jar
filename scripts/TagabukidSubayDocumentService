@@ -20,6 +20,9 @@ public class TagabukidSubayDocumentService  {
 	@Service('TagabukidSubayTransactionService')
 	def dtsSvc 
 
+	@ActiveDB(value='subaydocument', em='admin')
+	def	emUser; 
+
 	@Env
 	def env;
 
@@ -51,9 +54,14 @@ public class TagabukidSubayDocumentService  {
 
 		// if(!o.din) {o.din = createdin(o)}
 		// o.documenttypeid =  o.documenttype.objid
-		o.org = dtsSvc.getUserOrg(env.USERID).org
+		// o.org = (o.docstate=="OFFLINE" ? dtsSvc.getUserOrg(o.inv.createdbyuserid).org : dtsSvc.getUserOrg(env.USERID).org);
+		// println o.inv.createdbyuserid;
+		o.org = (o.docstate == "OFFLINE" ? dtsSvc.getUserOrg(o.inv.createdbyuserid).org : dtsSvc.getUserOrg(env.USERID).org)
+		verifydinofflinereconciliation(o.din,o.org);
 		em.create(o);
-		saveinfo(o);
+		if (o.docinfos){
+			saveinfo(o);
+		}
 		createinittask(o);
 
 
@@ -81,7 +89,7 @@ public class TagabukidSubayDocumentService  {
     }
     void saveinfo(o){
     	if(!o.objid) throw new Exception("documentid is required");
-		if(!o.docinfos) throw new Exception("docinfos is required");
+		
 		if(o.remove_all == true) eminfo.removeDocumentInfos( o );
 		o.docinfos.each {
 			it.documentid = o.objid;
@@ -110,13 +118,13 @@ public class TagabukidSubayDocumentService  {
 			rgt			   : 2,
 			state          : 'idle',
 			startdate      : dtSvc.serverDate,
-			assignee_objid : env.USERID,
-			assignee_name  : env.FULLNAME,
-			assignee_title : env.JOBTITLE,
-			actor_objid    : env.USERID,
-			actor_name     : env.FULLNAME,
-			actor_title    : env.JOBTITLE,
-			message        : 'DOCUMENT WITH DIN ' + o.din + ' WAS INITIALIZED BY ' + env.FULLNAME,
+			assignee_objid : (o.docstate == "OFFLINE" ? getUser(o.inv.createdbyuserid).objid : env.USERID),
+			assignee_name  : (o.docstate == "OFFLINE" ? getUser(o.inv.createdbyuserid).name : env.FULLNAME),
+			assignee_title : (o.docstate == "OFFLINE" ? getUser(o.inv.createdbyuserid).jobtitle : env.JOBTITLE),
+			actor_objid    : (o.docstate == "OFFLINE" ? getUser(o.inv.createdbyuserid).objid : env.USERID),
+			actor_name     : (o.docstate == "OFFLINE" ? getUser(o.inv.createdbyuserid).name : env.FULLNAME),
+			actor_title    : (o.docstate == "OFFLINE" ? getUser(o.inv.createdbyuserid).jobtitle : env.JOBTITLE),
+			message        : (o.message == null ? 'DOCUMENT WITH DIN ' + o.din + ' WAS INITIALIZED BY ' + env.FULLNAME : o.message),
 		]
 
 		def newtaskorg = [
@@ -129,6 +137,33 @@ public class TagabukidSubayDocumentService  {
 		taskem.save(newtaskorg,'subaydocumenttaskorg')
 
 		return inittask
+	}
+
+	public def getUser(objid){
+		emUser.findByUsername([objid:objid])
+	}
+
+	@ProxyMethod
+	public def verifydinofflinereconciliation(din,org) {
+	
+			def prefix = (din.substring(0,5)=="71007" ? din.substring(6,15) : din.substring(0,9)) 
+			def sequence = (din.substring(0,5)=="71007" ? din.substring(15) : din.substring(9)) 
+			din = prefix + sequence
+
+			def filter = ''' d.din = $P{barcodeid} ''';
+			def doc = em.findDocumentbyBarcode([barcodeid:din,filter:filter])
+			if (doc){
+				throw new Exception("DIN :" + din + " is already referenced to a document");
+			}
+			
+			def inv = em.findDocumentInv([prefix:prefix,sequence:sequence,orgid:org.objid])
+			if(!inv){
+				throw new Exception("Invalid DIN");
+			}
+
+
+			return [din:din,inv:inv]
+		
 	}
 
 	@ProxyMethod

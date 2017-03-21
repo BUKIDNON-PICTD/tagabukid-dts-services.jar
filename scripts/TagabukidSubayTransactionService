@@ -35,6 +35,12 @@ public class TagabukidSubayTransactionService  {
 	@Service('NotificationService')
 	def notificationService
 
+	@Service('TagabukidSubayDocumentService')
+	def docservice
+
+	@Service('TagabukidSubayDocumentTypeService')
+	def dtypeservice
+
 	@Env
 	def env;
 
@@ -92,6 +98,35 @@ public class TagabukidSubayTransactionService  {
 		
     }
 
+    @ProxyMethod
+    public def getDINInventry(params){
+    	def inv = em.findDINInventory(params);
+    	if(inv){
+    		def entity= [:]
+    		entity.objid ="DTS"+ new UID();
+			entity.dininventoryid = inv.objid;
+			entity.documenttype = dtypeservice.findById('DT-659168e:154b7024c81:-7e2f');
+			entity.recordlog = [:]
+			entity.state = 'IDLE'
+			entity.docstate = 'OFFLINE'
+			entity.child = []
+			entity.din = params.searchtext
+			entity.title = 'OFFLINE DOCUMENT WITH DIN ' + params.searchtext
+			entity.description = 'OFFLINE DOCUMENT WITH DIN ' + params.searchtext
+			entity.author = env.FULLNAME
+			entity.docinfos = []
+			entity.inv = inv.recordlog
+			entity.recordlog.datecreated = dtSvc.serverDate
+			entity.recordlog.createdbyuserid = env.USERID
+			entity.recordlog.createdbyuser = env.FULLNAME
+			entity.recordlog.dateoflastupdate =  dtSvc.serverDate
+			entity.recordlog.lastupdatedbyuserid = env.USERID
+			entity.recordlog.lastupdatedbyuser = env.FULLNAME
+    		// docservice.create(entity);
+    		return entity;
+    	}
+    	return null;
+    }
     void beforeList(params){
 		if (params == null) params = [:]
 		try{
@@ -112,7 +147,12 @@ public class TagabukidSubayTransactionService  {
 	@ProxyMethod
     public void processDocument(entity){
     	entity.document.each{doc->
-    		
+    		if (doc.docstate == "OFFLINE"){
+    			doc.message = "OFFLINE DOCUMENT RECONCILIATION";
+    			docservice.create(doc);
+    			def filter = ''' d.objid = $P{objid} '''
+    			doc = em.findDocumentbyBarcode([filter:filter,objid: doc.objid])
+    		}
     		checkRedFlagIssues(doc,entity);
 
 			if (entity.enddate){
@@ -190,7 +230,8 @@ public class TagabukidSubayTransactionService  {
 			default:
 				break;
 		}  
-
+		// println "TEST" * 50
+		// println doc.refid;
     	def newtask = [
 			objid          : 'TSK' + new java.rmi.server.UID(),
 			refid          : doc.refid,

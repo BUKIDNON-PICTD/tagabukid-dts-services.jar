@@ -341,3 +341,8 @@ OR dt.state IN ('attached','archived','closed'))
 AND dto.org_objid = $P{userorgid}
 ORDER BY d.title, dt.startdate
 
+[findDINInventory]
+SELECT * FROM subay_din_inventory WHERE SUBSTRING($P{searchtext},1,9) = prefix AND SUBSTRING($P{searchtext},10,15) BETWEEN startseries AND endseries;
+
+[findByUsername]
+SELECT * FROM sys_user WHERE objid=$P{objid} 
