@@ -439,7 +439,7 @@ public class TagabukidSubayTransactionService  {
 
     @ProxyMethod
     public def getStats(){
-    	return em.findDocStatsByOrg([userorgid:getUserOrg(env.USERID).organizationid])
+    	return em.findDocStatsByOrg([userorgid:getUserOrg(env.USERID).org.objid])
     }
 
 
