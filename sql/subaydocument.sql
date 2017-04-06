@@ -25,6 +25,8 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
+d.dininventoryid,
+d.isoffline,
 ug.org_objid AS originorg_objid,
 ug.org_name AS originorg_name,
 ug.org_code AS originorg_code,
@@ -98,6 +100,8 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
+d.dininventoryid,
+d.isoffline,
 ug.org_objid AS originorg_objid,
 ug.org_name AS originorg_name,
 ug.org_code AS originorg_code,
@@ -154,6 +158,8 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
+d.dininventoryid,
+d.isoffline,
 ug.org_objid AS originorg_objid,
 ug.org_name AS originorg_name,
 ug.org_code AS originorg_code,
@@ -210,6 +216,8 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
+d.dininventoryid,
+d.isoffline,
 ug.org_objid AS originorgid,
 ug.org_name AS originorgname,
 ug.org_code AS originorgcode,
@@ -267,6 +275,8 @@ d.recordlog_createdbyuser,
 d.recordlog_dateoflastupdate,
 d.recordlog_lastupdatedbyuserid,
 d.recordlog_lastupdatedbyuser,
+d.dininventoryid,
+d.isoffline,
 ug.org_objid AS originorgid,
 ug.org_name AS originorgname,
 ug.org_code AS originorgcode,
@@ -344,5 +354,20 @@ ORDER BY d.title, dt.startdate
 [findDINInventory]
 SELECT * FROM subay_din_inventory WHERE SUBSTRING($P{searchtext},1,9) = prefix AND SUBSTRING($P{searchtext},10,15) BETWEEN startseries AND endseries;
 
+[findDINInventoryById]
+SELECT * FROM subay_din_inventory WHERE objid = $P{objid}
+
 [findByUsername]
 SELECT * FROM sys_user WHERE objid=$P{objid} 
+
+[modifyDocInfo]
+UPDATE subay_document SET 
+	documenttype_objid = $P{documenttype_objid},
+	title = $P{title},
+	description = $P{description},
+	author = $P{author},
+	recordlog_dateoflastupdate = $P{recordlog_dateoflastupdate},
+	recordlog_lastupdatedbyuser = $P{recordlog_lastupdatedbyuser},
+	recordlog_lastupdatedbyuserid = $P{recordlog_lastupdatedbyuserid},
+	isoffline = 0
+WHERE objid = $P{objid}

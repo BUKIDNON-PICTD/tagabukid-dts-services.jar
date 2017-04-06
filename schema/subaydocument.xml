@@ -16,6 +16,7 @@
 		<field name="recordlog_dateoflastupdate" required="true"/>
 		<field name="recordlog_lastupdatedbyuserid" required="true"/>
 		<field name="recordlog_lastupdatedbyuser" required="true"/>
+		<field name="isoffline" required="true"/>
 	</element>
 
 	<element name="subaydocumentlink" tablename="subay_document_link">

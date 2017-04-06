@@ -122,6 +122,7 @@ public class TagabukidSubayTransactionService  {
 			entity.recordlog.dateoflastupdate =  dtSvc.serverDate
 			entity.recordlog.lastupdatedbyuserid = env.USERID
 			entity.recordlog.lastupdatedbyuser = env.FULLNAME
+			entity.isoffline = 1
     		// docservice.create(entity);
     		return entity;
     	}

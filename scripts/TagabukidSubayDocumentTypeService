@@ -8,8 +8,8 @@ class TagabukidSubayDocumentTypeService extends ActiveCrudListService
 	@ActiveDB(value='subaydocumenttype', em='tagabukid_subay')
 	def em
 
-	@ActiveDB(value='subaydocumenttype', em='postgrereferences')
-	def empostref
+	// @ActiveDB(value='subaydocumenttype', em='postgrereferences')
+	// def empostref
 
 	@Env
 	def env;
