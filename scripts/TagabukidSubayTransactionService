@@ -117,8 +117,8 @@ public class TagabukidSubayTransactionService  {
 			entity.docinfos = []
 			entity.inv = inv.recordlog
 			entity.recordlog.datecreated = dtSvc.serverDate
-			entity.recordlog.createdbyuserid = env.USERID
-			entity.recordlog.createdbyuser = env.FULLNAME
+			entity.recordlog.createdbyuserid = inv.recordlog.createdbyuserid
+			entity.recordlog.createdbyuser = inv.recordlog.createdbyuser
 			entity.recordlog.dateoflastupdate =  dtSvc.serverDate
 			entity.recordlog.lastupdatedbyuserid = env.USERID
 			entity.recordlog.lastupdatedbyuser = env.FULLNAME
