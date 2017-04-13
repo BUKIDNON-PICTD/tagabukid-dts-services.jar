@@ -54,9 +54,9 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 		
 		o.filter += ''' AND (d.din LIKE $P{searchtext}
 		OR d.title LIKE $P{searchtext}
-		OR d.description LIKE $P{searchtext}) 
+		OR d.description LIKE $P{searchtext} 
 		OR d.recordlog_createdbyuser LIKE $P{searchtext}) '''
-		
+
 		if(o.dtfrom && o.dtto){
 			o.filter += '''AND d.recordlog_datecreated BETWEEN $P{dtfrom} AND $P{dtto} '''
 		}

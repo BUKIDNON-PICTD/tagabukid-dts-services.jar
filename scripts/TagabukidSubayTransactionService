@@ -403,8 +403,7 @@ public class TagabukidSubayTransactionService  {
     }
 
     @ProxyMethod
-    public void cancelSend(doc){
-    	println doc;
+    public def cancelSend(doc){
     	def tasktodelete = taskem.findTask([objid:doc.taskid])
     	def parenttask = taskem.findParentNode([refid:doc.objid,taskid:doc.taskid])
     	def childtask = taskem.getChildTasks([refid:doc.objid,taskid:doc.taskid])
@@ -424,6 +423,8 @@ public class TagabukidSubayTransactionService  {
 		notification.each{
 			notificationService.removeMessage([objid: doc.taskid]); 
 		}
+
+		return parenttask
     }
 
 

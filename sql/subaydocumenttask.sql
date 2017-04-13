@@ -99,10 +99,9 @@ FROM subay_document_task AS node,
                 FROM subay_document_task AS node,
                 subay_document_task AS parent
                 WHERE node.lft BETWEEN parent.lft AND parent.rgt
-                AND node.`objid` = $P{taskid}
-              
+                AND node.objid = $P{taskid}
                 AND node.refid = $P{refid}
-				AND parent.refid = $P{refid}
+		AND parent.refid = $P{refid}
                 GROUP BY node.objid
                 ORDER BY node.lft
         )AS sub_tree
