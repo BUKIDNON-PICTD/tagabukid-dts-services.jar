@@ -24,7 +24,11 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 		nodes << [name:'outgoing',  caption: 'Outgoing', leaf:true, allowSearch:true, folder:true];
 		nodes << [name:'enroute', caption: 'En Route', leaf:true, allowSearch:true, folder:true];
 		nodes << [name:'processing', caption: 'Processing', leaf:true, allowSearch:true, folder:true];
-		nodes << [name:'archived', caption: 'Archived/Closed/Attached', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'archived', caption: 'Archived', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'closed', caption: 'Closed', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'attached', caption: 'Attached', leaf:true, allowSearch:true, folder:true];
+		nodes << [name:'all', caption: 'ALL', leaf:true, allowSearch:true, folder:true];
+
 		return nodes;
 	}	
 
