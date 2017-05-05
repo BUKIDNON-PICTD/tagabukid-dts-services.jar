@@ -13,7 +13,7 @@ WHERE refid = $P{objid})
 SELECT d.objid,
 d.docstate,
 d.din,
-dl.objid AS parentid,
+(SELECT objid FROM subay_document_link WHERE taskid = dt.objid)  AS parentid,
 d.documenttype_objid,
 d.title,
 d.description,
@@ -62,7 +62,6 @@ INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
-LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE 
 ${filter}
 ORDER BY d.din
@@ -88,7 +87,7 @@ GROUP BY org_objid ORDER BY org_name
 SELECT d.objid,
 d.docstate,
 d.din,
-dl.objid AS parentid,
+(SELECT objid FROM subay_document_link WHERE taskid = dt.objid)  AS parentid,
 d.documenttype_objid,
 d.title,
 d.description,
@@ -137,7 +136,6 @@ INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
-LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE 1=1
 ${filter}
 ORDER BY dt.startdate
@@ -146,7 +144,7 @@ ORDER BY dt.startdate
 SELECT d.objid,
 d.docstate,
 d.din,
-dl.objid AS parentid,
+(SELECT objid FROM subay_document_link WHERE taskid = dt.objid)  AS parentid,
 d.documenttype_objid,
 d.title,
 d.description,
@@ -195,7 +193,6 @@ INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
-LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
 AND (dt.enddate IS NULL OR dt.state IN ('archived','attached','linked','closed'))
 ORDER BY d.title
@@ -204,7 +201,7 @@ ORDER BY d.title
 SELECT d.objid,
 d.docstate,
 d.din,
-dl.objid AS parentid,
+(SELECT objid FROM subay_document_link WHERE taskid = dt.objid)  AS parentid,
 d.documenttype_objid,
 d.title,
 d.description,
@@ -254,7 +251,6 @@ INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
-LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
 AND (dt.enddate IS NULL OR dt.state IN ('archived','attached','linked'))
 ORDER BY d.title, dt.startdate
@@ -313,7 +309,6 @@ INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
-LEFT JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
 AND dt.state IN ('archived','attached','linked')
 ORDER BY d.title, dt.startdate

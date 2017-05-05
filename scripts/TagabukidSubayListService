@@ -61,21 +61,16 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 		OR d.description LIKE $P{searchtext} 
 		OR d.recordlog_createdbyuser LIKE $P{searchtext}) '''
 
-		if(o.dtfrom && o.dtto){
-			o.filter += '''AND d.recordlog_datecreated BETWEEN $P{dtfrom} AND $P{dtto} '''
+		if( !o.searchtext || o.searchtext == '%' ){
+			o.searchtext = "?";
 		}
-
-		if(o.documenttype){
-			o.documenttypeid =  o.documenttype.objid
-			o.filter += '''AND d.documenttype_objid = $P{documenttypeid} '''
-		}
+		
 
 		switch(o.name) {
 			case 'search':
-					if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "?";
-					else{
-						o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed')) AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';	
-					}
+					
+				o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed')) AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';	
+				
 				// if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "%";
 				break;
 				
@@ -113,6 +108,16 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 			default:
 				break;
 		}
+
+		if(o.dtfrom && o.dtto){
+			o.filter += '''AND d.recordlog_datecreated BETWEEN $P{dtfrom} AND $P{dtto} '''
+		}
+
+		if(o.documenttype){
+			o.documenttypeid =  o.documenttype.objid
+			o.filter += '''AND d.documenttype_objid = $P{documenttypeid} '''
+		}
+
 	}
 
 } 
