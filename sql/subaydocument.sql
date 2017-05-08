@@ -309,6 +309,7 @@ INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
+INNER JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
 AND dt.state IN ('archived','attached','linked')
 ORDER BY d.title, dt.startdate
