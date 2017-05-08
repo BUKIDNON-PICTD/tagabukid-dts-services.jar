@@ -14,6 +14,10 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 	@Service("DateService")
 	def dateSvc;
 
+	@Service('UserRoleService') 
+    def userRoleSvc; 
+
+
 	@Env
 	def env;
 
@@ -27,7 +31,10 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 		nodes << [name:'archived', caption: 'Archived', leaf:true, allowSearch:true, folder:true];
 		nodes << [name:'closed', caption: 'Closed', leaf:true, allowSearch:true, folder:true];
 		nodes << [name:'attached', caption: 'Attached', leaf:true, allowSearch:true, folder:true];
-		nodes << [name:'all', caption: 'ALL', leaf:true, allowSearch:true, folder:true];
+		if (userRoleSvc.getUsers( [domain:'SUBAY', roles:'MASTER'] ).collect {it.objid}.contains(env.USERID)){
+			nodes << [name:'all', caption: 'ALL Documents', leaf:true, allowSearch:true, folder:true];
+		}
+		
 
 		return nodes;
 	}	
@@ -61,14 +68,14 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 		OR d.description LIKE $P{searchtext} 
 		OR d.recordlog_createdbyuser LIKE $P{searchtext}) '''
 
-		if( !o.searchtext || o.searchtext == '%' ){
-			o.searchtext = "?";
-		}
+		
 		
 
 		switch(o.name) {
 			case 'search':
-					
+				if( !o.searchtext || o.searchtext == '%' ){
+					o.searchtext = "?";
+				}	
 				o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed')) AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';	
 				
 				// if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "%";
@@ -100,9 +107,31 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 				break;
 
 			case 'archived':
-				
+				if( !o.searchtext || o.searchtext == '%' ){
+					o.searchtext = "?";
+				}
 				o.state = 'archived';
-				o.filter += ''' AND dt.state IN ('attached','archived','closed') AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
+				break;
+
+			case 'closed':
+				
+				o.state = 'closed';
+				o.filter += ''' AND dt.state = $P{state} AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
+				break;
+
+			case 'attached':
+				
+				o.state = 'attached';
+				o.filter += ''' AND dt.state = $P{state} AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
+				break;
+
+			case 'all':
+				if( !o.searchtext || o.searchtext == '%' ){
+					o.searchtext = "?";
+				}
+				
+				o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed'))''';
 				break;
 
 			default:
@@ -110,7 +139,7 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 		}
 
 		if(o.dtfrom && o.dtto){
-			o.filter += '''AND d.recordlog_datecreated BETWEEN $P{dtfrom} AND $P{dtto} '''
+			o.filter += '''AND d.recordlog_datecreated BETWEEN $P{dtfrom} AND ADDDATE($P{dtto},1) '''
 		}
 
 		if(o.documenttype){
