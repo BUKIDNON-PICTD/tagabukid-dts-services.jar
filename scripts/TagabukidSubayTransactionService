@@ -424,7 +424,7 @@ public class TagabukidSubayTransactionService  {
 			notificationService.removeMessage([objid: doc.taskid]); 
 		}
 
-		return parenttask
+		return docservice.open([taskid:parenttask.objid])
     }
 
 
