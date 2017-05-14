@@ -20,6 +20,28 @@ class TagabukidSubayCabinetService extends ActiveCrudNodeService {
 	def env;
 
 
+    void addNode(parent){
+    	em.changeNodeRight([myRight:parent.rgt]);
+		em.changeNodeLeft([myRight:parent.rgt]);
+    }
+
+    
+	void addChild(parent){
+    	em.changeParentRight([myLeft:parent.lft]);
+		em.changeParentLeft([myLeft:parent.lft]);
+    }
+
+    public void beforeCreate(o){
+    	
+    	def parent = em.findParent(o);
+    	
+    	addChild(parent);
+
+    	o.lft = parent.lft + 1;
+		o.rgt = parent.lft + 2;
+
+    }
+
 	public void afterNode( def selectedNode, def list ) {
 		def orgid = dtsSvc.getUserOrg(env.USERID).org.objid
 		// println list

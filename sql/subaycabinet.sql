@@ -108,3 +108,20 @@ SELECT
   0 AS amount 
 FROM subay_cabinet 
 ORDER BY code
+
+
+[findParent]
+SELECT * FROM subay_cabinet WHERE objid = $P{parentid}
+
+[changeNodeRight]
+UPDATE subay_cabinet SET rgt = rgt + 2 WHERE rgt > $P{myRight}
+
+[changeNodeLeft]
+UPDATE subay_cabinet SET lft = lft + 2 WHERE lft > $P{myRight}
+
+[changeParentRight]
+UPDATE subay_cabinet SET rgt = rgt + 2 WHERE rgt > $P{myLeft}
+
+[changeParentLeft]
+UPDATE subay_cabinet SET lft = lft + 2 WHERE lft > $P{myLeft}
+

@@ -9,6 +9,8 @@
 		<field name="title" required="true"/>
 		<field name="type" />
 		<field name="orgid" />
+		<field name="lft" />
+		<field name="rgt" />
 	</element>
 
 </schema>
