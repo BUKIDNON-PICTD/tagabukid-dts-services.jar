@@ -23,6 +23,9 @@ public class TagabukidSubayTransactionService  {
 	@ActiveDB(value='subaydocumenttask', em='tagabukid_subay')
 	def taskem
 
+	@ActiveDB(value='subaydocumentcabinet', em='tagabukid_subay')
+	def emdoccabinet
+
 	@ActiveDB(value='subaydocumenttype', em='tagabukid_subay')
 	def emdoctype
 
@@ -219,7 +222,14 @@ public class TagabukidSubayTransactionService  {
 			case "archived":
 				state = 'archived';
 				docstate = "CLOSED";
-				doc.message = "Cabinet Code:" + o.cabinetcode +" , Folder Code: " +  o.foldercode;
+				//doc.message = "Cabinet Code:" + o.cabinetcode +" , Folder Code: " +  o.foldercode;
+				doc.message = "LOCATED AT " + org.name + " : " + o.cabinet.type.toUpperCase() + " " +  o.cabinet.title;
+				def newarchive = [
+					objid:doc.refid,
+					cabinetid:o.cabinet.objid,
+				]
+				o.org = org;
+				emdoccabinet.save(newarchive);
 				break;	
 			case "offline":
 				state = 'offline';

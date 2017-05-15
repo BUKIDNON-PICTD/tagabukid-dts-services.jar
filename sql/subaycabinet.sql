@@ -1,16 +1,48 @@
 [getRootNodes]
+SELECT CONCAT( REPEAT( '-', (COUNT(parent.title) - 1) ), node.title) AS location,node.title, node.objid,node.`parentid`,node.`state`,node.`code`,node.`type`,node.`orgid`,node.`lft`,node.`rgt`
+FROM subay_cabinet AS node,
+        subay_cabinet AS parent
+WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.orgid IN ('ROOT',$P{orgid}) AND node.parentid IS NULL AND  node.type='cabinet'
+GROUP BY node.title
+ORDER BY node.lft
+
+[getRootNodes1]
 SELECT a.* FROM subay_cabinet a  WHERE 
 a.orgid IN ('ROOT',$P{orgid}) AND a.parentid IS NULL and a.type='cabinet' ORDER BY a.code
 
 [getChildNodes]
+SELECT CONCAT( REPEAT( '-', (COUNT(parent.title) - 1) ), node.title) AS location,node.title, node.objid,node.`parentid`,node.`state`,node.`code`,node.`type`,node.`orgid`,node.`lft`,node.`rgt`
+FROM subay_cabinet AS node,
+        subay_cabinet AS parent
+WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.parentid=$P{objid} AND  node.type='cabinet'
+GROUP BY node.title
+ORDER BY node.lft
+
+[getChildNodes1]
 SELECT a.* FROM subay_cabinet a WHERE 
 a.parentid=$P{objid} AND a.type='cabinet' ORDER BY a.code
 
 [getList]
+SELECT CONCAT( REPEAT( '-', (COUNT(parent.title) - 1) ), node.title) AS location,node.title, node.objid,node.`parentid`,node.`state`,node.`code`,node.`type`,node.`orgid`,node.`lft`,node.`rgt`
+FROM subay_cabinet AS node,
+        subay_cabinet AS parent
+WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.orgid IN ('ROOT',$P{orgid}) AND node.parentid=$P{objid}
+GROUP BY node.title
+ORDER BY node.lft
+
+[getList1]
 SELECT * FROM subay_cabinet WHERE 
 orgid IN ('ROOT',$P{orgid}) AND parentid=$P{objid} ORDER BY code 
 
 [getListDetails]
+SELECT CONCAT( REPEAT( '-', (COUNT(parent.title) - 1) ), node.title) AS location,node.title, node.objid,node.`parentid`,node.`state`,node.`code`,node.`type`,node.`orgid`,node.`lft`,node.`rgt`
+FROM subay_cabinet AS node,
+        subay_cabinet AS parent
+WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.orgid IN ('ROOT',$P{orgid}) AND (node.title LIKE $P{searchtext} OR node.code LIKE $P{searchtext}) AND  node.type='folder'
+GROUP BY node.title
+ORDER BY node.lft
+
+[getListDetails1]
 SELECT DISTINCT a.* FROM 
 ( 
   SELECT * FROM subay_cabinet WHERE 
@@ -24,6 +56,14 @@ a.orgid IN ('ROOT',$P{orgid}) AND  a.type='folder'
 ORDER BY a.code 
 
 [getSearch]
+SELECT CONCAT( REPEAT( '-', (COUNT(parent.title) - 1) ), node.title) AS location,node.title, node.objid,node.`parentid`,node.`state`,node.`code`,node.`type`,node.`orgid`,node.`lft`,node.`rgt`
+FROM subay_cabinet AS node,
+        subay_cabinet AS parent
+WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.orgid IN ('ROOT',$P{orgid}) AND (node.title LIKE $P{searchtext} OR node.code LIKE $P{searchtext})
+GROUP BY node.title
+ORDER BY node.lft
+
+[getSearch1]
 SELECT DISTINCT a.* FROM 
 ( 
   SELECT * FROM subay_cabinet WHERE 
@@ -43,6 +83,14 @@ WHERE
 a.orgid IN ('ROOT',$P{orgid}) AND a.objid=$P{objid}
 
 [getLookup]
+SELECT CONCAT( REPEAT( '-', (COUNT(parent.title) - 1) ), node.title) AS location,node.title, node.objid,node.`parentid`,node.`state`,node.`code`,node.`type`,node.`orgid`,node.`lft`,node.`rgt`
+FROM subay_cabinet AS node,
+        subay_cabinet AS parent
+WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.orgid = $P{orgid}
+GROUP BY node.title
+ORDER BY node.lft
+
+[getLookup1]
 SELECT a.* FROM 
 (
 	SELECT objid,code,title,type FROM subay_cabinet t WHERE 
@@ -71,7 +119,7 @@ UPDATE subay_cabinet SET state='APPROVED' WHERE
 objid=$P{objid} 
 
 [changeParent]
-UPDATE subay_cabinet SET parentid=$P{parentid} WHERE 
+UPDATE subay_cabinet SET parentid=$P{parentid},lft=$P{lft},rgt=$P{rgt} WHERE 
 objid=$P{objid} 
 
 [getSubAccounts]

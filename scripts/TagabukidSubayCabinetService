@@ -65,8 +65,9 @@ class TagabukidSubayCabinetService extends ActiveCrudNodeService {
 	@ProxyMethod
 	public def getColumns( def o ) {
 		def cols = [
-			[name:'code', caption:'Cabinet Code', width:100, maxWidth:200 ],
+			[name:'location', caption:'Hierarchy' ],
 			[name:'title', caption:'Cabinet Title' ],
+			[name:'code', caption:'Cabinet Code', width:100, maxWidth:200 ],
 			[name:'type', caption:'Type' ]
 		];
 		return cols;
@@ -110,6 +111,11 @@ class TagabukidSubayCabinetService extends ActiveCrudNodeService {
 
 	@ProxyMethod
     public def changeParent(o) {
+    	
+		def parent = em.findParent(o);
+		addChild(parent);
+    	o.lft = parent.lft + 1;
+		o.rgt = parent.lft + 2;
     	return em.changeParent( o );
     }
 
