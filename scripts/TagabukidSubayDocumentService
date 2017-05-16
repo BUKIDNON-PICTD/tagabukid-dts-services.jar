@@ -314,7 +314,7 @@ public class TagabukidSubayDocumentService  {
     	}
 
     	o = em.findDocumentbyBarcode(o);
-
+    	o.statemessage = createstatemessage(o);
     	//def documenttype = emdoctype.findById([objid:o.documenttypeid])
     	
     	if(o.documenttype.haschild){
@@ -326,9 +326,50 @@ public class TagabukidSubayDocumentService  {
     	o.currentuser = env.USERID;
     	o.currentorg = dtsSvc.getUserOrg(env.USERID).org.objid;
     	o.docinfos = getDocumentInfos([documentid:o.objid]);
-    
+    	
 		return o;
 		
+    }
+
+    public def createstatemessage(o){
+    	println o.org
+        if (o.state){
+            switch(o.state){
+                case "idle":
+                    return "IDLE AT " + o.locationorg.code?.toUpperCase();
+                break;
+                case "enroute":
+                    return "EN ROUTE TO " + o.locationorg.code?.toUpperCase();
+                break;
+                case "outgoing":
+                    return "FOR PICKUP AT " + o.locationorg.code?.toUpperCase();
+                break;
+                case "processing":
+                    return "PROCESSING AT " + o.locationorg.code?.toUpperCase();
+                break;
+                case "linked":
+                    return "LINKED TO " + o.parentdin?.toUpperCase();
+                break;
+                case "archived":
+                    return "ARCHIVED AT " + o.locationorg.code + " : " + o.cabinet?.toUpperCase();
+                break;
+                case "attached":
+                    return "ATTACHED TO " + o.parentdin;
+                break;
+                case 'offline':
+					return "OFFLINE";
+				break;
+				case 'redflag':
+					return "REDFLAG WITH " + o.redflag?.toUpperCase();
+				break;
+				case 'closed':
+					return "CLOSED ";
+				break;
+                default:
+                break;
+            }
+            
+        }
     }
 
     @ProxyMethod

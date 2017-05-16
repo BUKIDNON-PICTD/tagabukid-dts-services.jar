@@ -1,6 +1,0 @@
-<schema>
-	<element name="subaydocumentcabinet" tablename="subay_document_cabinet">
-		<field name="objid" primary="true"/>
-		<field name="cabinetid" required="true"/>
-	</element>
-</schema>
