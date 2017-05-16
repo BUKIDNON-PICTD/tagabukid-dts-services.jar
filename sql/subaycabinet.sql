@@ -14,7 +14,7 @@ a.orgid IN ('ROOT',$P{orgid}) AND a.parentid IS NULL and a.type='cabinet' ORDER 
 SELECT CONCAT( REPEAT( '-', (COUNT(parent.title) - 1) ), node.title) AS location,node.title, node.objid,node.`parentid`,node.`state`,node.`code`,node.`type`,node.`orgid`,node.`lft`,node.`rgt`
 FROM subay_cabinet AS node,
         subay_cabinet AS parent
-WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.parentid=$P{objid} AND  node.type='cabinet'
+WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.parentid=$P{objid} AND node.type <> 'document'
 GROUP BY node.title
 ORDER BY node.lft
 
@@ -86,7 +86,7 @@ a.orgid IN ('ROOT',$P{orgid}) AND a.objid=$P{objid}
 SELECT CONCAT( REPEAT( '-', (COUNT(parent.title) - 1) ), node.title) AS location,node.title, node.objid,node.`parentid`,node.`state`,node.`code`,node.`type`,node.`orgid`,node.`lft`,node.`rgt`
 FROM subay_cabinet AS node,
         subay_cabinet AS parent
-WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.orgid = $P{orgid}
+WHERE (node.lft BETWEEN parent.lft AND parent.rgt) AND node.orgid = $P{orgid} AND node.type <> 'document'
 GROUP BY node.title
 ORDER BY node.lft
 

@@ -23,8 +23,11 @@ public class TagabukidSubayTransactionService  {
 	@ActiveDB(value='subaydocumenttask', em='tagabukid_subay')
 	def taskem
 
-	@ActiveDB(value='subaydocumentcabinet', em='tagabukid_subay')
-	def emdoccabinet
+	// @ActiveDB(value='subaydocumentcabinet', em='tagabukid_subay')
+	// def emdoccabinet
+
+	@ActiveDB(value='subaycabinet', em='tagabukid_subay')
+	def emdoccabinet;
 
 	@ActiveDB(value='subaydocumenttype', em='tagabukid_subay')
 	def emdoctype
@@ -43,6 +46,9 @@ public class TagabukidSubayTransactionService  {
 
 	@Service('TagabukidSubayDocumentTypeService')
 	def dtypeservice
+
+	@Service('TagabukidSubayCabinetService')
+	def cabinetservice
 
 	@Env
 	def env;
@@ -197,6 +203,7 @@ public class TagabukidSubayTransactionService  {
     
 
     public def createnewtask(o,doc,child){
+    	println o.cabinet
     	addChild(doc,child);
     	def org = getUserOrg(env.USERID).org;
     	def state = '';
@@ -223,13 +230,23 @@ public class TagabukidSubayTransactionService  {
 				state = 'archived';
 				docstate = "CLOSED";
 				//doc.message = "Cabinet Code:" + o.cabinetcode +" , Folder Code: " +  o.foldercode;
-				doc.message = "LOCATED AT " + org.name + " : " + o.cabinet.type.toUpperCase() + " " +  o.cabinet.title;
+				// doc.message = "LOCATED AT " + org.name + " : " + o.cabinet.type.toUpperCase() + " " +  o.cabinet.title;
 				def newarchive = [
-					objid:doc.refid,
-					cabinetid:o.cabinet.objid,
-				]
+					parentid:o.cabinet.objid,
+					type    :'document',
+					code    :doc.din,
+					title   :doc.title,
+					orgid   :org.objid,
+					state   :'DRAFT',
+					objid   : doc.refid
+				];
+				// def parent = emdoccabinet.findParent(newarchive);
+		  //   	emdoccabinet.addChild(parent);
+		  //   	newarchive.lft = parent.lft + 1;
+				// newarchive.rgt = parent.lft + 2;
+				// emdoccabinet.create(newarchive);
+				cabinetservice.create(newarchive);
 				o.org = org;
-				emdoccabinet.save(newarchive);
 				break;	
 			case "offline":
 				state = 'offline';
@@ -459,9 +476,9 @@ public class TagabukidSubayTransactionService  {
     	def redflags = redflagSvc.getOpenIssues( [refid: doc.objid, blockaction:entity.mode]);
 		if( redflags ) {
 			StringBuilder sb = new StringBuilder();
-			sb.append("There are unresolved issues: \n")
+			sb.append("THERE ARE UNRESOLVED ISSUES: \n")
 			redflags.each {
-				sb.append( it.caseno +':'+it.message + ". filed by " + it.filedby.name + "\n");
+				sb.append( 'CASE NO: '+ it.caseno +'\nDIN: ' + it.din + '\nMESSAGE: ' + it.message + "\nFILED BY " + it.filedby.name + "\n--------\n");
 			}
 			def w =  new Warning("redflag");
 			w.info.list = redflags;

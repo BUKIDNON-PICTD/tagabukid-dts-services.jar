@@ -25,7 +25,7 @@ class TagabukidSubayCabinetService extends ActiveCrudNodeService {
 		em.changeNodeLeft([myRight:parent.rgt]);
     }
 
-    
+    @ProxyMethod
 	void addChild(parent){
     	em.changeParentRight([myLeft:parent.lft]);
 		em.changeParentLeft([myLeft:parent.lft]);
@@ -44,8 +44,6 @@ class TagabukidSubayCabinetService extends ActiveCrudNodeService {
 
 	public void afterNode( def selectedNode, def list ) {
 		def orgid = dtsSvc.getUserOrg(env.USERID).org.objid
-		// println list
-		// println list.findAll{it.orgid != orgid && it.orgid != 'ROOT'}
 		list.removeAll( list.findAll{it.orgid != orgid && it.orgid != 'ROOT'} );
 
 		list.each { 
@@ -53,7 +51,8 @@ class TagabukidSubayCabinetService extends ActiveCrudNodeService {
 			it.filetype = "subaycabinet-"+it.type;
 			it.children = [  
 				[caption:'Cabinet', filetype: 'subaycabinet-cabinet'],
-				[caption:'Cabinet Sub Folder', filetype: 'subaycabinet-folder']
+				[caption:'Cabinet Sub Folder', filetype: 'subaycabinet-folder'],
+				[caption:'New Document for Arcive', filetype: 'subaycabinet-document']
 			]
 		}
 
@@ -66,8 +65,8 @@ class TagabukidSubayCabinetService extends ActiveCrudNodeService {
 	public def getColumns( def o ) {
 		def cols = [
 			[name:'location', caption:'Hierarchy' ],
-			[name:'title', caption:'Cabinet Title' ],
-			[name:'code', caption:'Cabinet Code', width:100, maxWidth:200 ],
+			[name:'title', caption:'Title' ],
+			[name:'code', caption:'Code', width:100, maxWidth:200 ],
 			[name:'type', caption:'Type' ]
 		];
 		return cols;

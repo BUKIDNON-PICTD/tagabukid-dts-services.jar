@@ -37,8 +37,8 @@ public class TagabukidSubayDocumentService  {
 		entity.dininventoryid = null;
 		entity.documenttype = [:]
 		entity.recordlog = [:]
-		entity.state = 'IDLE'
-		entity.docstate = 'IDLE'
+		// entity.state = 'IDLE'
+		// entity.docstate = 'IDLE'
 		entity.child = []
 		// entity.docinfos = [:]
 		entity.recordlog.datecreated = dtSvc.serverDate
@@ -67,8 +67,6 @@ public class TagabukidSubayDocumentService  {
 			saveinfo(o);
 		}
 		createinittask(o);
-
-
 		if(o.documenttype.haschild){
 			o.child.each{
 				
@@ -88,7 +86,16 @@ public class TagabukidSubayDocumentService  {
 				
 			}
 		}
-
+		// if (o.state == 'ARCHIVE'){
+		// 	def filter = ''' d.objid = $P{objid} ''';
+  //   		def doc = em.findDocumentbyBarcode([filter:filter,objid: o.objid]);
+  //   		o.document = [];
+  //   		o.document << doc;
+  //   		o.txndate = dtSvc.getServerDate();
+  //   		o.preparedbyname = env.FULLNAME;
+  //   		o.mode = 'archived';
+  //   		dtsSvc.processDocument(o)
+		// }
 		return o;
     }
     void saveinfo(o){
