@@ -1,0 +1,137 @@
+import com.rameses.annotations.*;
+import com.rameses.util.*;
+import java.rmi.server.*;
+import com.rameses.common.*
+
+import com.rameses.services.extended.*
+
+class TagabukidSubayCabinetService extends ActiveCrudNodeService {
+
+	@ActiveDB(value='subaycabinet', em='tagabukid_subay')
+	def em;
+
+	// @Service(value='SREAccountService', connection='etracsorg.osiris3')
+	// def acctSvc;
+
+	@Service('TagabukidSubayTransactionService')
+	def dtsSvc 
+
+	@Env
+	def env;
+
+
+    void addNode(parent){
+    	em.changeNodeRight([myRight:parent.rgt]);
+		em.changeNodeLeft([myRight:parent.rgt]);
+    }
+
+    @ProxyMethod
+	void addChild(parent){
+    	em.changeParentRight([myLeft:parent.lft]);
+		em.changeParentLeft([myLeft:parent.lft]);
+    }
+
+    public void beforeCreate(o){
+    	
+    	def parent = em.findParent(o);
+    	
+    	addChild(parent);
+
+    	o.lft = parent.lft + 1;
+		o.rgt = parent.lft + 2;
+
+    }
+
+	public void afterNode( def selectedNode, def list ) {
+		def orgid = dtsSvc.getUserOrg(env.USERID).org.objid
+		list.removeAll( list.findAll{it.orgid != orgid && it.orgid != 'ROOT'} );
+
+		list.each { 
+			it.caption = it.code + " (" + it.title + ") ";
+			it.filetype = "subaycabinet-"+it.type;
+			it.children = [  
+				[caption:'Cabinet', filetype: 'subaycabinet-cabinet'],
+				[caption:'Cabinet Sub Folder', filetype: 'subaycabinet-folder'],
+				[caption:'New Document for Arcive', filetype: 'subaycabinet-document']
+			]
+		}
+
+		if(selectedNode.root == true) {
+			list.add(0, [name:'folder', caption:'Details', leaf:true, allowSearch:true]);
+		}	
+	}
+
+	@ProxyMethod
+	public def getColumns( def o ) {
+		def cols = [
+			[name:'location', caption:'Hierarchy' ],
+			[name:'title', caption:'Title' ],
+			[name:'code', caption:'Code', width:100, maxWidth:200 ],
+			[name:'type', caption:'Type' ]
+		];
+		return cols;
+	}
+
+	public def open(o) {
+		return em.findInfo(o);
+	}
+
+	public void beforeList( def p ) {
+		if(p.name == "search") {
+			p._listMethod = "getSearch";
+		}
+		else if(p.name == "folder") {
+			p._listMethod = "getListDetails";
+		}
+		if( p._tag ) {
+			p._listMethod = "getLookup";
+			p.type = p._tag;
+			if(!p.parentid) p.parentid = '%';
+		}
+
+		p.orgid = dtsSvc.getUserOrg(env.USERID).org.objid
+	}
+	
+	public void afterList( def p, def list ) {
+		list.each { 
+			it.filetype = 'subaycabinet-'+it.type;
+		}
+	}
+	
+    @ProxyMethod
+    public def getSubAccounts(o) {
+    	return em.getSubAccounts( o );
+    }
+    
+  	@ProxyMethod
+    public def saveSubAccount(o) {
+    	return em.save( o );
+    }
+
+	@ProxyMethod
+    public def changeParent(o) {
+    	
+		def parent = em.findParent(o);
+		addChild(parent);
+    	o.lft = parent.lft + 1;
+		o.rgt = parent.lft + 2;
+    	return em.changeParent( o );
+    }
+
+    // @ProxyMethod 
+    // public void syncFromCloud() {
+    // 	def list = []
+    // 	def start = 0
+    // 	while(true){
+    // 		list = acctSvc.getList([searchtext: '%', _start:start, _limit: 25]);
+    // 		if(! list ) break;
+
+    // 		list.each { 
+    // 			em.save(it);
+    // 		}
+    // 		start += 25
+    // 	}
+    // }
+
+
+}

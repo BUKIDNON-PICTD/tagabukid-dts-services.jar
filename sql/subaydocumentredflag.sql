@@ -2,7 +2,9 @@
 SELECT * FROM subay_document_redflag WHERE refid=$P{objid}
 
 [getOpenIssues]
-SELECT * FROM subay_document_redflag WHERE resolved=0 AND refid=$P{refid} AND blockaction=$P{blockaction}
+SELECT sdr.*,d.din FROM subay_document_redflag sdr
+INNER JOIN subay_document d on d.objid = sdr.refid
+WHERE sdr.resolved=0 AND sdr.refid=$P{refid} AND sdr.blockaction=$P{blockaction}
 
 [findDocumentInfo]
 SELECT d.objid,
