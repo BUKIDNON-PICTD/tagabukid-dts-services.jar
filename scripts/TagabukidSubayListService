@@ -76,7 +76,7 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 				if( !o.searchtext || o.searchtext == '%' ){
 					o.searchtext = "?";
 				}	
-				o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed')) AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';	
+				o.filter += ''' AND dt.rgt = dt.lft + 1 AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';	
 				
 				// if( !o.searchtext || o.searchtext == '%' ) o.searchtext = "%";
 				break;
@@ -85,25 +85,25 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 			case 'idle':
 				
 				o.state = 'idle';
-				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.rgt = dt.lft + 1 AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
 				break;
 
 			case 'outgoing':
 				
 				o.state = 'outgoing';
-				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (ug.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.rgt = dt.lft + 1 AND (ug.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
 				break;
 
 			case 'enroute':
 				
 				o.state = 'enroute';
-				o.filter += ''' AND dt.state = $P{state} AND dt.enddate IS NULL AND (dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.rgt = dt.lft + 1 AND (dto.org_objid = $P{userorgid} OR ug2.org_objid = $P{userorgid})''';
 				break;
 
 			case 'processing':
 				
 				o.state = 'processing';
-				o.filter += ''' AND dt.state IN ('processing','linked') AND dt.enddate IS NULL AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
+				o.filter += ''' AND dt.state IN ('processing','linked') AND dt.rgt = dt.lft + 1 AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
 				break;
 
 			case 'archived':
@@ -111,19 +111,19 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 					o.searchtext = "?";
 				}
 				o.state = 'archived';
-				o.filter += ''' AND dt.state = $P{state} AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.rgt = dt.lft + 1 AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
 				break;
 
 			case 'closed':
 				
 				o.state = 'closed';
-				o.filter += ''' AND dt.state = $P{state} AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.rgt = dt.lft + 1 AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
 				break;
 
 			case 'attached':
 				
 				o.state = 'attached';
-				o.filter += ''' AND dt.state = $P{state} AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
+				o.filter += ''' AND dt.state = $P{state} AND dt.rgt = dt.lft + 1 AND (ug.org_objid = $P{userorgid} OR dto.org_objid = $P{userorgid})''';
 				break;
 
 			case 'all':
@@ -131,7 +131,7 @@ class TagabukidSubayListService extends ActiveCrudListService  {
 					o.searchtext = "?";
 				}
 				
-				o.filter += ''' AND (dt.enddate IS NULL OR dt.state IN ('attached','archived','closed'))''';
+				o.filter += ''' AND dt.rgt = dt.lft + 1 ''';
 				break;
 
 			default:

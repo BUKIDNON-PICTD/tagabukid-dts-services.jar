@@ -1,0 +1,12 @@
+import com.rameses.annotations.*;
+
+class Sampler {
+	
+
+	@Schedule
+	public void test(def taskInfo) {
+		println "Testing...." + taskInfo;
+	}
+
+
+}

@@ -14,6 +14,9 @@ SELECT d.objid,
 d.docstate,
 d.din,
 (SELECT objid FROM subay_document_link WHERE taskid = dt.objid)  AS parentid,
+(SELECT CONCAT(din," - ",title) FROM subay_document WHERE objid = (SELECT objid FROM subay_document_link WHERE taskid = dt.objid))  AS parentdin,
+(SELECT CONCAT(`type`," - ",title) FROM subay_cabinet WHERE objid = (SELECT parentid FROM subay_cabinet WHERE objid = d.objid)) AS cabinet,
+(SELECT GROUP_CONCAT("CASE NO: ",caseno," - ",message) FROM subay_document_redflag WHERE refid = d.objid AND resolved = 0) AS redflag,
 d.documenttype_objid,
 d.title,
 d.description,
@@ -88,6 +91,9 @@ SELECT d.objid,
 d.docstate,
 d.din,
 (SELECT objid FROM subay_document_link WHERE taskid = dt.objid)  AS parentid,
+(SELECT CONCAT(din," - ",title) FROM subay_document WHERE objid = (SELECT objid FROM subay_document_link WHERE taskid = dt.objid))  AS parentdin,
+(SELECT CONCAT(`type`," - ",title) FROM subay_cabinet WHERE objid = (SELECT parentid FROM subay_cabinet WHERE objid = d.objid)) AS cabinet,
+(SELECT GROUP_CONCAT("CASE NO: ",caseno," - ",message) FROM subay_document_redflag WHERE refid = d.objid AND resolved = 0) AS redflag,
 d.documenttype_objid,
 d.title,
 d.description,
@@ -138,13 +144,16 @@ INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
 WHERE 1=1
 ${filter}
-ORDER BY dt.startdate
+ORDER BY dt.startdate DESC
 
 [findDocumentbyBarcode]
 SELECT d.objid,
 d.docstate,
 d.din,
 (SELECT objid FROM subay_document_link WHERE taskid = dt.objid)  AS parentid,
+(SELECT CONCAT(din," - ",title) FROM subay_document WHERE objid = (SELECT objid FROM subay_document_link WHERE taskid = dt.objid))  AS parentdin,
+(SELECT CONCAT(`type`," - ",title) FROM subay_cabinet WHERE objid = (SELECT parentid FROM subay_cabinet WHERE objid = d.objid)) AS cabinet,
+(SELECT GROUP_CONCAT("CASE NO: ",caseno," - ",message) FROM subay_document_redflag WHERE refid = d.objid AND resolved = 0) AS redflag,
 d.documenttype_objid,
 d.title,
 d.description,
@@ -194,7 +203,7 @@ INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
 WHERE ${filter}
-AND (dt.enddate IS NULL OR dt.state IN ('archived','attached','linked','closed'))
+AND dt.rgt = dt.lft + 1
 ORDER BY d.title
 
 [getDocumentbyBarcode]
@@ -202,6 +211,9 @@ SELECT d.objid,
 d.docstate,
 d.din,
 (SELECT objid FROM subay_document_link WHERE taskid = dt.objid)  AS parentid,
+(SELECT CONCAT(din," - ",title) FROM subay_document WHERE objid = (SELECT objid FROM subay_document_link WHERE taskid = dt.objid))  AS parentdin,
+(SELECT CONCAT(`type`," - ",title) FROM subay_cabinet WHERE objid = (SELECT parentid FROM subay_cabinet WHERE objid = d.objid)) AS cabinet,
+(SELECT GROUP_CONCAT("CASE NO: ",caseno," - ",message) FROM subay_document_redflag WHERE refid = d.objid AND resolved = 0) AS redflag,
 d.documenttype_objid,
 d.title,
 d.description,
@@ -252,7 +264,7 @@ INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
 WHERE ${filter}
-AND (dt.enddate IS NULL OR dt.state IN ('archived','attached','linked'))
+AND dt.rgt = dt.lft + 1
 ORDER BY d.title, dt.startdate
 
 [getDocumentChild]
@@ -311,7 +323,7 @@ INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
 INNER JOIN subay_user_organization ug2 ON ug2.`objid` = dt.`actor_objid`
 INNER JOIN subay_document_link dl ON dl.`taskid` = dt.`objid`
 WHERE ${filter}
-AND dt.state IN ('archived','attached','linked')
+AND dt.state IN ('archived','attached','linked') AND dt.rgt = dt.lft + 1
 ORDER BY d.title, dt.startdate
 
 [updateparent]
@@ -342,8 +354,7 @@ INNER JOIN subay_user_organization ug ON ug.objid = d.`recordlog_createdbyuserid
 INNER JOIN subay_document_task dt ON dt.`refid` = d.`objid`
 INNER JOIN subay_document_task_org dto ON dto.`taskid` = dt.`objid`
 INNER JOIN subay_document_type dtyp ON dtyp.`objid` = d.`documenttype_objid`
-WHERE (dt.enddate IS NULL 
-OR dt.state IN ('attached','archived','closed')) 
+WHERE dt.rgt = dt.lft + 1
 AND dto.org_objid = $P{userorgid}
 ORDER BY d.title, dt.startdate
 
